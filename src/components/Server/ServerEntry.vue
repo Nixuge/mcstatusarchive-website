@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useSelectedServer } from '@/stores/selectedserver'
+
+const { getSelectedServer, changeSelectedServer } = useSelectedServer()
 
 const props = defineProps<{
   ip: string,
@@ -20,7 +23,7 @@ const clicked = ref(false);
 </script>
 
 <template>
-<div class="server_entry" :class="{'clicked': clicked}" @dblclick="$router.push('/server/' + ip)" @click="clicked = true" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
+<div class="server_entry" :class="{'clicked': getSelectedServer() === ip}" @dblclick="$router.push('/server/' + ip)" @click="changeSelectedServer(ip)" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
     <div class="icon_wrapper">
         <img class="server_icon" :src="icon ? icon : 'https://s.namemc.com/i/7532417c54983749.png'">
         <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? arrow_hovering : arrow_clear" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
