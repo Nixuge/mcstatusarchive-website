@@ -1,23 +1,32 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import ServerEntry from './ServerEntry.vue';
 
-const background_vanilla = "https://i.imgur.com/F4HCSWp.png";
-const background_mathox = "https://i.imgur.com/WQK7qti.png";
+import { useSearcher } from '@/stores/searcher';
+const { setSearchText } = useSearcher();
+function setSearch(payload: any) {
+    setSearchText(payload.target.value);
+} 
+
+import { useServerList } from '@/stores/serverlist';
+const { requestServerList, getShownServerList } = useServerList()
+onMounted(() => {
+    requestServerList();
+})
+
 </script>
 
 <template>
     <h3>Play multiplayer</h3>
     <div class="server_viewer_wrapper">
+        <input @input="setSearch">
         <div class="server_viewer">
-        <ServerEntry ip="hypixel.net" :online_playerss="12" :max_players="20" motd="hello"/>
-        <ServerEntry ip="hypixel.org" :online_playerss="12" :max_players="20" motd="hello"/>
-        <ServerEntry ip="hypixel.suuuu" :online_playerss="12" :max_players="20" motd="hello"/>
-        <ServerEntry ip="hypixel.oe" :online_playerss="12" :max_players="20" motd="hello"/>
-    </div>
-    <div id="scanning">
-        <h4>Scanning for games on your local network</h4>
-        <img id="scanning_gif" src="https://i.imgur.com/cfYkOU1.gif">
-    </div>
+            <ServerEntry v-for="server in getShownServerList()" :data="server" />
+        </div>
+        <div id="scanning">
+            <h4>Scanning for games on your local network</h4>
+            <img id="scanning_gif" src="https://i.imgur.com/cfYkOU1.gif">
+        </div>
     </div>
 </template>
 
@@ -52,10 +61,14 @@ h3 {
         /* Firefox scrollbar */
         scrollbar-color: #c0c0c0 #000;
         scrollbar-width: large;
+        width: 100%;
     }
     .server_viewer {
         display: grid;
-
+        max-width: 1280px;
+        margin: auto;
+        grid-template-columns: 1fr;
+        width: 100%;
     }
 
     /* TODO: see if possible to replace w a lib like simplebar for ff custom scrollbar support   */

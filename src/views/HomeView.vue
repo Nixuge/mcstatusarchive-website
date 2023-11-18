@@ -7,7 +7,6 @@ import ServerViewer from '../components/Server/ServerViewer.vue'
 </template>
 <style>
  #app {
-  /* background: url("https://i.imgur.com/qiF5wSO.png"); */
   background: url("https://i.imgur.com/BuhwdPB.png");
   background-repeat: repeat;
  }

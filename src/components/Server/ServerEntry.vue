@@ -1,43 +1,51 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useSelectedServer } from '@/stores/selectedserver'
-
-const { getSelectedServer, changeSelectedServer } = useSelectedServer()
+import { onMounted, ref } from 'vue';
+import { API_URL } from '@/constants';
+import { useServerList, type Server } from '@/stores/serverlist';
+const { getSelectedServer, changeSelectedServer } = useServerList()
 
 const props = defineProps<{
-  ip: string,
-  online_playerss: number,
-  max_players: number,
-  motd: string,
-  icon?: string,
-  name?: string,
-  bar?: number
-}>()
+    data: Server
+}>();
+
+const ip = props.data.ip;
+const icon = props.data.favicon;
+const name = undefined;
+const online_players = props.data.players_on;
+const max_players = props.data.players_max;
+
+// const props = defineProps<{
+//   ip: string,
+//   online_playerss: number,
+//   max_players: number,
+//   motd: string,
+//   icon?: string,
+//   name?: string
+// }>()
 
 const arrow_clear = "https://i.imgur.com/88gxl6q.png";
 const arrow_hovering = "https://i.imgur.com/tyZ4PV3.png";
 
 const hovering_global = ref(false);
 const hovering_arrow = ref(false);
-const clicked = ref(false);
 </script>
 
 <template>
 <div class="server_entry" :class="{'clicked': getSelectedServer() === ip}" @dblclick="$router.push('/server/' + ip)" @click="changeSelectedServer(ip)" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
     <div class="icon_wrapper">
-        <img class="server_icon" :src="icon ? icon : 'https://s.namemc.com/i/7532417c54983749.png'">
+        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/unknown_server.png`">
         <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? arrow_hovering : arrow_clear" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
     </div>
     <div class="server_info">
         <div class="first_line">
-            <img class="server_flag emoji" title="Hünenberg, Switzerland" draggable="false" src="https://s.namemc.com/img/emoji/twitter/1f1e8-1f1ed.svg" alt="🇨🇭">
+            <!-- <img class="server_flag emoji" title="Hünenberg, Switzerland" draggable="false" src="https://s.namemc.com/img/emoji/twitter/1f1e8-1f1ed.svg" alt="🇨🇭"> -->
             <span class="server_name">{{ name ? name : ip }}</span>
             
             <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png">
-            <span class="player_count">{{ online_playerss }}/{{ max_players }}</span>
+            <span class="player_count">{{ online_players }}/{{ max_players }}</span>
         </div>
         <div class="server_motd">
-            <span>TODO...</span>
+            <span>{{ data.motd ? data.motd : "§6Can't connect to server" }}</span>
         </div>
 
         </div>
@@ -52,13 +60,22 @@ const clicked = ref(false);
     background-color: #333;
 }
 .server_entry {
-    height: 70px;
+    box-sizing: border-box;
+    overflow-x: auto;
+    /* overflow-y: hidden; */
+    /* display: flex; */
+    height: 72px;
     /* background-color: #0F0F0F; */
     /* max-height: 90px; */
-    border: 1px solid transparent;
+    border: 2px solid transparent;
+    width: 100%;
+    
+}
+.server_icon {
+    width: 100%;
 }
 .clicked {
-    border: 1px solid #808080;
+    border: 2px solid #808080;
     background: #000;
 }
 .player_count,
@@ -69,15 +86,25 @@ const clicked = ref(false);
     margin-top: 7px;
     margin-left: 5px;
 }
-.server_info {
-    /* padding: 2px; */
+.server_icon {
+    width: 64px;
+    height: 64px;
+}
+.server_icon.hovering {
+    filter: grayscale(80%);
+    background-color: #333;
 }
 .icon_wrapper {
     position: relative;
     float: left;
-    padding: 2px;
-    width: 72px;
-    height: 72px;
+    margin: 2px;
+    width: 64px;
+    height: 64px;
+    padding-bottom: 0px;
+    margin-bottom: 0;
+}
+img {
+    display: block;
 }
 .server_arrow {
     position: absolute;
@@ -86,11 +113,16 @@ const clicked = ref(false);
     width: 36px;
     height: 52px;
     cursor: pointer;
+    padding-bottom: 0px;
+    margin-bottom: 0;
 }
-img.emoji {
+.server_motd {
+    font-size: 13px;
+}
+/* img.emoji {
   height: 1.05em;
   width: 1.05em;
   margin: 0 .15em;
   vertical-align: -.15em;
-}
+} */
 </style>
