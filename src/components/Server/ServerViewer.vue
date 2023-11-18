@@ -6,7 +6,7 @@ import { useSearcher } from '@/stores/searcher';
 const { setSearchText } = useSearcher();
 function setSearch(payload: any) {
     setSearchText(payload.target.value);
-} 
+}
 
 import { useServerList } from '@/stores/serverlist';
 const { requestServerList, getShownServerList } = useServerList()
@@ -33,57 +33,58 @@ onMounted(() => {
 <style scoped>
 h3 {
     text-align: center;
+    padding-bottom: 5px;
 }
 
 #scanning {
-    margin-top:auto;
-    margin-bottom:auto;
-    text-align:center;
+    margin-top: auto;
+    margin-bottom: auto;
+    text-align: center;
 }
+
 #scanning_gif {
     width: 50px;
     height: 14px;
 }
- 
-    .server_viewer_wrapper {
-        height: 90%;
-        overflow: auto;
-        /* shadows at top & botomp like in normal mc*/
-        box-shadow: inset 0px 10px 5px -8px black, inset 0px -10px 5px -8px black;
-        padding-left: 2rem;
-        padding-right: 2rem;
-        padding-top: 5px;
-        padding-bottom: 5px;
-        background: url("https://i.imgur.com/qiF5wSO.png");
-        /* background: url("https://i.imgur.com/BuhwdPB.png"); */
-        background-repeat: repeat;
 
-        /* Firefox scrollbar */
-        scrollbar-color: #c0c0c0 #000;
-        scrollbar-width: large;
-        width: 100%;
-    }
-    .server_viewer {
-        display: grid;
-        max-width: 1280px;
-        margin: auto;
-        grid-template-columns: 1fr;
-        width: 100%;
-    }
+.server_viewer_wrapper {
+    height: 90%;
+    overflow: auto;
+    /* shadows at top & botomp like in normal mc*/
+    box-shadow: inset 0px 10px 5px -8px black, inset 0px -10px 5px -8px black;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background: url("https://i.imgur.com/qiF5wSO.png");
+    background-repeat: repeat;
 
-    /* TODO: see if possible to replace w a lib like simplebar for ff custom scrollbar support   */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
+    /* Firefox scrollbar */
+    scrollbar-color: #c0c0c0 #000;
+    scrollbar-width: large;
+    width: 100%;
+}
 
-    ::-webkit-scrollbar-thumb {
-      background-color: #c0c0c0;
-      border-bottom: 1px solid #808080;
-      border-right: 1px solid #808080;
-    }
+.server_viewer {
+    display: grid;
+    max-width: 1280px;
+    margin: auto;
+    grid-template-columns: 1fr;
+    width: 100%;
+}
 
-    ::-webkit-scrollbar-track {
-      background-color: #000;
-    }
-    
+/* TODO: see if possible to replace w a lib like simplebar for ff custom scrollbar support   */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    border-bottom: 1px solid #808080;
+    border-right: 1px solid #808080;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #000;
+}
 </style>

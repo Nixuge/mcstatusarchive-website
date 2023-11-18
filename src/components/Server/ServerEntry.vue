@@ -51,7 +51,7 @@ const hovering_arrow = ref(false);
             <span class="server_name">{{ name ? name : ip }}</span>
             
             <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png">
-            <span class="player_count" v-if="online_players && max_players">{{ online_players }}/{{ max_players }}</span>
+            <span class="player_count" v-if="online_players !== undefined && max_players !== undefined">{{ online_players }}/{{ max_players }}</span>
         </div>
         <div class="server_motd" ref="motdRef"></div>
         </div>
