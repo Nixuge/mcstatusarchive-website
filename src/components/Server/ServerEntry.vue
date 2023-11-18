@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, type Ref } from 'vue';
 import { API_URL } from '@/constants';
 import { useServerList, type Server } from '@/stores/serverlist';
 const { getSelectedServer, changeSelectedServer } = useServerList()
@@ -14,6 +14,15 @@ const name = undefined;
 const online_players = props.data.players_on;
 const max_players = props.data.players_max;
 
+import { replaceColorCodes } from '@/js/MinecraftColorCodes'
+const motd_formatted: DocumentFragment = (props.data.motd == null) ? 
+        replaceColorCodes("§4Can't connect to server") : replaceColorCodes(props.data.motd);
+
+const motdRef: Ref<HTMLElement> = ref(null) as unknown as Ref<HTMLElement>;
+
+onMounted(() => {
+        motdRef.value.appendChild(motd_formatted)
+});
 // const props = defineProps<{
 //   ip: string,
 //   online_playerss: number,
@@ -42,15 +51,10 @@ const hovering_arrow = ref(false);
             <span class="server_name">{{ name ? name : ip }}</span>
             
             <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png">
-            <span class="player_count">{{ online_players }}/{{ max_players }}</span>
+            <span class="player_count" v-if="online_players && max_players">{{ online_players }}/{{ max_players }}</span>
         </div>
-        <div class="server_motd">
-            <span>{{ data.motd ? data.motd : "§6Can't connect to server" }}</span>
+        <div class="server_motd" ref="motdRef"></div>
         </div>
-
-        </div>
-
-
   </div>
 </template>
 
@@ -62,16 +66,8 @@ const hovering_arrow = ref(false);
 .server_entry {
     box-sizing: border-box;
     overflow-x: auto;
-    /* overflow-y: hidden; */
-    /* display: flex; */
     height: 72px;
-    /* background-color: #0F0F0F; */
-    /* max-height: 90px; */
     border: 2px solid transparent;
-    width: 100%;
-    
-}
-.server_icon {
     width: 100%;
 }
 .clicked {
@@ -98,18 +94,17 @@ const hovering_arrow = ref(false);
     position: relative;
     float: left;
     margin: 2px;
+    margin-right: 5px;
     width: 64px;
     height: 64px;
-    padding-bottom: 0px;
-    margin-bottom: 0;
 }
 img {
     display: block;
 }
 .server_arrow {
     position: absolute;
-    top: 10px;
-    left: 30px;
+    top: 6px;
+    left: 24px;
     width: 36px;
     height: 52px;
     cursor: pointer;
