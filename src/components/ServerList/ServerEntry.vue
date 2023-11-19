@@ -57,6 +57,13 @@ const hovering_arrow = ref(false);
   </div>
 </template>
 
+<style>
+.motd-span::selection {
+    color: #fff;
+    background-color: #333;
+}
+</style>
+
 <style scoped>
 ::selection {
     color: #fff;
@@ -68,6 +75,7 @@ const hovering_arrow = ref(false);
     height: 72px;
     border: 2px solid transparent;
     width: 100%;
+    cursor: default;
 }
 .clicked {
     border: 2px solid #808080;

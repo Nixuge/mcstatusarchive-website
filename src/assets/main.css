@@ -7,13 +7,20 @@
 
 
 #app {
-  
+  color: #fff;
   margin: 0 auto;
-
 
   font-weight: normal;
 }
-
+#app {
+  background: url("https://i.imgur.com/BuhwdPB.png");
+  background-repeat: repeat;
+ }
+ #app {
+    height: 100vh;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
 a,
 .green {
   text-decoration: none;

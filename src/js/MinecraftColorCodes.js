@@ -1,4 +1,6 @@
 // From https://github.com/FoxInFlame/MinecraftColorCodes
+// Modified to add a class to the spans 
+// Still a bit dirty but does the job
 
 var obfuscators = [];
 var styleMap = {
@@ -33,6 +35,7 @@ function obfuscate(string, elem) {
             currNode = elem.childNodes[j];
             if(currNode.nodeType === 3) {
                 magicSpan = document.createElement('span');
+                magicSpan.classList.add('motd-span')
                 magicSpan.innerHTML = currNode.nodeValue;
                 elem.replaceChild(magicSpan, currNode);
                 init(magicSpan);
@@ -64,6 +67,7 @@ function applyCode(string, codes) {
     var len = codes.length;
     var elem = document.createElement('span'),
         obfuscated = false;
+    elem.classList.add('motd-span')
     for(var i = 0; i < len; i++) {
         elem.style.cssText += styleMap[codes[i]] + ';';
         if(codes[i] === '§k') {
