@@ -51,14 +51,25 @@ function updateGraph() {
     let snapshot = null;
     let labels = []
     let playerCount = []
+    let playerAverageList = []
     for (let i = 0; i < snapshots.length; i++) {
-        if (i % oneEvery != 0) 
-        continue
-      
         snapshot = snapshots[i];
-        labels.push(snapshot.save_date.toLocaleString("fr-FR"))
         lastPlayersOn = (snapshot.players_on) ? snapshot.players_on : lastPlayersOn;
-        playerCount.push(lastPlayersOn)
+        playerAverageList.push(lastPlayersOn);
+
+        if (i % oneEvery != 0)
+            continue
+
+        // A bit more expansive to make the average,
+        // but it looks way better for bigger ranges (almost all)
+
+        const sum = playerAverageList.reduce((a, b) => a + b, 0);
+        // const playerAverage = Math.floor(sum / playerAverageList.length);
+        const playerAverage = sum / playerAverageList.length;
+        playerAverageList = [];
+
+        labels.push(snapshot.save_date.toLocaleString("fr-FR"))
+        playerCount.push(playerAverage)
     }
 
     data.value ={
@@ -71,6 +82,7 @@ function updateGraph() {
             data: playerCount,
             tension: 0.3,
             fill: true,
+            pointHitRadius: 5,
             pointRadius: 0,
             pointBorderWidth: 0,
             pointHoverRadius: 4
