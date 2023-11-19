@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import ServerViewer from '../components/ServerList/ServerList.vue'
+import ServerList from '@/components/ServerList/ServerList.vue'
 </script>
 
 <template>
-    <ServerViewer />
+    <ServerList />
 </template>
 <style>
  #app {
