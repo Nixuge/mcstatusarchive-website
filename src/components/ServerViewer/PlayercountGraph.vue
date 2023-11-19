@@ -8,7 +8,7 @@ import { Chart as chartjs, registerables } from 'chart.js';
 chartjs.register(...registerables);
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
-const { getServerSnapshots } = useSnapshots();
+const { getServerSnapshotsForDateRange } = useSnapshots();
 
 const data: Ref<any> = ref({
   labels: ['', ''],
@@ -38,17 +38,17 @@ const options: any = {
 const playerStatsDiv = ref(null) as unknown as Ref<HTMLDivElement>;
 
 function updateGraph() {
-    if (getServerSnapshots().length == 0)
+    if (getServerSnapshotsForDateRange().length == 0)
         return
     
     
-    const snapshots = getServerSnapshots();
+    const snapshots = getServerSnapshotsForDateRange();
 
     const divWidth = playerStatsDiv.value.clientWidth;
     const snapshotsLen = snapshots.length;
     let oneEvery = 0
     if (divWidth < snapshotsLen)
-        oneEvery = Math.floor((snapshotsLen / playerStatsDiv.value.clientWidth) * 8);
+        oneEvery = Math.floor((snapshotsLen / playerStatsDiv.value.clientWidth) * 4);
     
     let lastPlayersOn = Number.NaN;
     let snapshot = null;
@@ -59,7 +59,7 @@ function updateGraph() {
         continue
       
       snapshot = snapshots[i];
-      labels.push(new Date(snapshot.save_time * 1000).toLocaleString("fr-FR"))
+      labels.push(snapshot.save_date.toLocaleString("fr-FR"))
       lastPlayersOn = (snapshot.players_on) ? snapshot.players_on : lastPlayersOn;
       playerCount.push(lastPlayersOn)
     }
@@ -68,7 +68,7 @@ function updateGraph() {
         labels: labels,
         datasets: [
           {
-            label: 'Current max playercount: ' + snapshot?.players_max,
+            label: 'Players on',
             borderColor: '#fc9802',
             backgroundColor: '#fcad02',
             data: playerCount,
@@ -81,7 +81,7 @@ function updateGraph() {
       }
 }
 
-watch(getServerSnapshots, (newSnapshots) => {
+watch(getServerSnapshotsForDateRange, () => {
   updateGraph();
 });
 onMounted(() => {

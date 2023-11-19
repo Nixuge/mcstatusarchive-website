@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { API_URL } from '@/constants';
-import { type ServerSnapshot } from '@/ts/types/serversnapshot'
+import PlayercountGraph from './PlayercountGraph.vue'
+import RangePicker from './RangePicker.vue'
+
 import router from '@/router';
 import { onMounted, ref, type Ref } from 'vue';
-import PlayercountGraph from './PlayercountGraph.vue'
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { requestServerSnapshots } = useSnapshots();
@@ -28,6 +28,7 @@ onMounted(async() => {
     <h1>This is an about page for server {{ ip }}</h1>
     <span ref="refJson"></span>
     <PlayercountGraph />
+    <RangePicker />
   </div>
 </template>
 
