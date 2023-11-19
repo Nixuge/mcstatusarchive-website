@@ -37,6 +37,10 @@ const arrow_hovering = "https://i.imgur.com/tyZ4PV3.png";
 
 const hovering_global = ref(false);
 const hovering_arrow = ref(false);
+
+function showVersionTemporary() {
+    alert("Version name: " + props.data.version_name + "\nVersion protocol: " + props.data.version_protocol)
+}
 </script>
 
 <template>
@@ -49,7 +53,7 @@ const hovering_arrow = ref(false);
         <div class="first_line">
             <span class="server_name">{{ name ? name : ip }}</span>
             
-            <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png">
+            <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png" @click="showVersionTemporary">
             <span class="player_count" v-if="online_players !== undefined && max_players !== undefined">{{ online_players }}/{{ max_players }}</span>
         </div>
         <div class="server_motd" ref="motdRef"></div>
@@ -88,6 +92,7 @@ const hovering_arrow = ref(false);
 .ping {
     margin-top: 7px;
     margin-left: 5px;
+    cursor: pointer;
 }
 .server_icon {
     width: 64px;
