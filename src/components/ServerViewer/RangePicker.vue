@@ -38,5 +38,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <VueDatePicker v-model="date" :min-date="minDate" :max-date="maxDate" :start-date="minDate" range />
+    <VueDatePicker :dark="true" v-model="date" :min-date="minDate" :max-date="maxDate" :start-date="minDate" range />
 </template>
+
+<style>
+.dp__main {
+    width: 50%;
+    margin: auto;
+}
+</style>

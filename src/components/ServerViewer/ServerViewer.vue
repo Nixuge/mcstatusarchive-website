@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlayercountGraph from './PlayercountGraph.vue'
 import RangePicker from './RangePicker.vue'
+import SnapshotsViewer from './SnapshotsViewer.vue'
 
 import router from '@/router';
 import { onMounted, ref, type Ref } from 'vue';
@@ -36,6 +37,7 @@ onMounted(async() => {
     <span class="status">Status: <span ref="refJson"></span></span>
     <PlayercountGraph />
     <RangePicker />
+    <SnapshotsViewer />
   </div>
 </template>
 

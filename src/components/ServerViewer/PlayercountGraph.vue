@@ -83,12 +83,11 @@ function updateGraph() {
 
         // A bit more expansive to make the average,
         // but it looks way better for bigger ranges (almost all)
-
         const sum = playerAverageList.reduce((a, b) => a + b, 0);
         // const playerAverage = Math.floor(sum / playerAverageList.length);
         const playerAverage = sum / playerAverageList.length;
         playerAverageList = [];
-        
+
         labels.push(snapshot.save_time * 1000)
         playerCount.push(playerAverage)
     }
