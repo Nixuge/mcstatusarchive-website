@@ -36,14 +36,21 @@ const options: any = {
 }
 
 const playerStatsDiv = ref(null) as unknown as Ref<HTMLDivElement>;
-
+    // Math.round(prompt('Enter a number', 33) / 10) * 10);
+let currentWidth = 0;
+    
 function updateGraph() {
-    if (getServerSnapshotsForDateRange().length == 0)
+    // Do not calculate if snapshots is empty (not yet loaded)
+    const snapshots = getServerSnapshotsForDateRange();
+    if (snapshots.length == 0)
         return
     
-    const snapshots = getServerSnapshotsForDateRange();
-
+    // Avoid recalculating at every resize, only do it every 10px change
     const divWidth = playerStatsDiv.value.clientWidth;
+    if (Math.abs(currentWidth - divWidth) < 10) 
+        return;
+    currentWidth = divWidth;
+    
     const snapshotsLen = snapshots.length;
     let oneEvery = 1
     if (divWidth < snapshotsLen)
@@ -89,7 +96,7 @@ function updateGraph() {
         // const playerAverage = Math.floor(sum / playerAverageList.length);
         const playerAverage = sum / playerAverageList.length;
         playerAverageList = [];
-        
+
         labels.push(snapshot.save_time * 1000)
         playerCount.push(playerAverage)
     }

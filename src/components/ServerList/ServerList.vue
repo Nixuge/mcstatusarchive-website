@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, type Ref } from 'vue';
 import ServerEntry from './ServerEntry.vue';
 
 import { useSearcher } from '@/stores/searcher';
-const { setSearchText } = useSearcher();
+const { setSearchText, searchInputMount } = useSearcher();
 function setSearch(payload: any) {
     setSearchText(payload.target.value);
 }
 
 import { useServerList } from '@/stores/serverlist';
 const { requestServerList, getShownServerList } = useServerList()
+
+const searchInput = ref(null) as unknown as Ref<HTMLInputElement>;
+
 onMounted(() => {
     requestServerList();
+    searchInputMount(searchInput.value);
 })
 
 </script>
@@ -19,7 +23,7 @@ onMounted(() => {
 <template>
     <h3>Play multiplayer ({{ getShownServerList().length }} servers available)</h3>
     <div class="server_viewer_wrapper">
-        <span>TEMPSEARCH </span><input @input="setSearch">
+        <span>TEMPSEARCH </span><input ref="searchInput" @input="setSearch">
         <div class="server_viewer">
             <ServerEntry  v-for="server in getShownServerList()" :key="server.ip" :data="server" />
         </div>

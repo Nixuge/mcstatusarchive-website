@@ -1,8 +1,14 @@
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useSearcher = defineStore('searcher', () => {
-    const searchText = ref("")
+    // const searchInput = ref(null) as unknown as Ref<HTMLInputElement>;
+    const searchText = ref("");
+
+    function searchInputMount(elem: HTMLInputElement) {
+        // searchInput.value = elem;
+        elem.value = searchText.value;
+    }
 
     function setSearchText(text: string) {
         searchText.value = text.toLowerCase();
@@ -12,5 +18,5 @@ export const useSearcher = defineStore('searcher', () => {
         return searchText.value;
     }
 
-    return { setSearchText, getSearchText }
+    return { setSearchText, getSearchText, searchInputMount }
 })
