@@ -43,8 +43,6 @@ export const useServerList = defineStore('serverList', () => {
                 allShown.push(server);
             }
         }
-        console.log(allShown);
-
         return allShown;
     }
 

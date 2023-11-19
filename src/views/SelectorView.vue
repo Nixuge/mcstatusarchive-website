@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ServerViewer from '../components/Server/ServerViewer.vue'
+import ServerViewer from '../components/ServerList/ServerViewer.vue'
 </script>
 
 <template>

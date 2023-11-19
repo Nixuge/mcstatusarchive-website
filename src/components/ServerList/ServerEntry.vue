@@ -42,12 +42,11 @@ const hovering_arrow = ref(false);
 <template>
 <div class="server_entry" :class="{'clicked': getSelectedServer() === ip}" @dblclick="$router.push('/server/' + ip)" @click="changeSelectedServer(ip)" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
     <div class="icon_wrapper">
-        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/unknown_server.png`">
+        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon != 'None' && icon != undefined ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/unknown_server.png`">
         <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? arrow_hovering : arrow_clear" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
     </div>
     <div class="server_info">
         <div class="first_line">
-            <!-- <img class="server_flag emoji" title="Hünenberg, Switzerland" draggable="false" src="https://s.namemc.com/img/emoji/twitter/1f1e8-1f1ed.svg" alt="🇨🇭"> -->
             <span class="server_name">{{ name ? name : ip }}</span>
             
             <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png">

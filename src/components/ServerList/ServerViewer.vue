@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import ServerEntry from './ServerEntry.vue';
 
 import { useSearcher } from '@/stores/searcher';
@@ -19,7 +19,7 @@ onMounted(() => {
 <template>
     <h3>Play multiplayer</h3>
     <div class="server_viewer_wrapper">
-        <input @input="setSearch">
+        <span>TEMPSEARCH </span><input @input="setSearch">
         <div class="server_viewer">
             <ServerEntry v-for="server in getShownServerList()" :data="server" />
         </div>
