@@ -49,5 +49,9 @@ export const useSnapshots = defineStore('snapshots', () => {
         return snapshotsDate.value;
     }
 
-    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange }
+    function reset() {
+        snapshots.value = [];
+    }
+
+    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, reset }
 })
