@@ -17,7 +17,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <h3>Play multiplayer</h3>
+    <h3>Play multiplayer ({{ getShownServerList().length }} servers available)</h3>
     <div class="server_viewer_wrapper">
         <span>TEMPSEARCH </span><input @input="setSearch">
         <div class="server_viewer">

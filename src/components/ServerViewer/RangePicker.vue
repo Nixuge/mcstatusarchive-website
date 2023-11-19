@@ -38,7 +38,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <VueDatePicker :dark="true" v-model="date" :min-date="minDate" :max-date="maxDate" :start-date="minDate" range />
+    <VueDatePicker teleport-center dark v-model="date" :min-date="minDate" :max-date="maxDate" :start-date="minDate" range />
 </template>
 
 <style>
