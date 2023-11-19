@@ -74,7 +74,7 @@ function updateGraph() {
 
         lastSaveTime = snapshot.save_time;
         
-        if (snapshot.players_on)
+        if (snapshot.players_on !== undefined)
             lastPlayersOn = snapshot.players_on;
         
         playerAverageList.push(lastPlayersOn);
@@ -88,7 +88,7 @@ function updateGraph() {
         // const playerAverage = Math.floor(sum / playerAverageList.length);
         const playerAverage = sum / playerAverageList.length;
         playerAverageList = [];
-
+        
         labels.push(snapshot.save_time * 1000)
         playerCount.push(playerAverage)
     }
