@@ -38,19 +38,23 @@ const options: any = {
 const playerStatsDiv = ref(null) as unknown as Ref<HTMLDivElement>;
     // Math.round(prompt('Enter a number', 33) / 10) * 10);
 let currentWidth = 0;
-    
-function updateGraph() {
-    // Do not calculate if snapshots is empty (not yet loaded)
-    const snapshots = getServerSnapshotsForDateRange();
-    if (snapshots.length == 0)
-        return
-    
+
+function resizeUpdateGraph() {
     // Avoid recalculating at every resize, only do it every 10px change
     const divWidth = playerStatsDiv.value.clientWidth;
     if (Math.abs(currentWidth - divWidth) < 10) 
         return;
     currentWidth = divWidth;
-    
+    updateGraph();
+}
+
+function updateGraph() {
+    // Do not calculate if snapshots is empty (not yet loaded)
+    const snapshots = getServerSnapshotsForDateRange();
+    if (snapshots.length == 0)
+        return
+
+    const divWidth = playerStatsDiv.value.clientWidth;
     const snapshotsLen = snapshots.length;
     let oneEvery = 1
     if (divWidth < snapshotsLen)
@@ -125,10 +129,10 @@ watch(getServerSnapshotsForDateRange, () => {
 });
 onMounted(() => {
     updateGraph();
-    window.addEventListener("resize", updateGraph)
+    window.addEventListener("resize", resizeUpdateGraph)
 })
 onUnmounted(() => {
-    window.removeEventListener("resize", updateGraph)
+    window.removeEventListener("resize", resizeUpdateGraph)
 })
 
 </script>

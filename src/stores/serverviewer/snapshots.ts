@@ -37,7 +37,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         
         snapshots.value.forEach(snapshot => {
             snapshot.save_date = new Date(snapshot.save_time * 1000);
-        })
+        })        
         setStartEndDates(snapshots.value[0].save_date, snapshots.value[snapshots.value.length - 1].save_date);
     }
 
@@ -49,9 +49,27 @@ export const useSnapshots = defineStore('snapshots', () => {
         return snapshotsDate.value;
     }
 
+    // Ow typescript
+    function getLatestServerSnapshotFull() {
+        const latestServer = {} as any;
+        const remainingKeys = [...keys, "save_date"];
+        
+        for (const snapshot of [...getServerSnapshots()].reverse() as any[]) {            
+            for (const key of remainingKeys) {
+                if (snapshot[key]) {
+                    latestServer[key] = snapshot[key]
+                    remainingKeys.splice(remainingKeys.indexOf(key), 1)                    
+                }
+            } 
+            if (remainingKeys.length == 0)
+                break;
+        }
+        return latestServer as ServerSnapshot;
+    }
+
     function reset() {
         snapshots.value = [];
     }
 
-    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, reset }
+    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, reset }
 })

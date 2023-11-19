@@ -1,5 +1,5 @@
 // From https://github.com/FoxInFlame/MinecraftColorCodes
-// Modified to add a class to the spans 
+// Modified to add a class to the spans & check for undefined strings
 // Still a bit dirty but does the job
 
 var obfuscators = [];
@@ -124,9 +124,11 @@ function clearObfuscators() {
     obfuscators = [];
 }
 export function replaceColorCodes(input) {
-  clearObfuscators();
-  var outputString = parseStyle(input);
-  return outputString;
+    if (!input)
+        return document.createDocumentFragment();
+    clearObfuscators();
+    var outputString = parseStyle(input);
+    return outputString;
 };
 
 /////////////////////////////////////////////////
