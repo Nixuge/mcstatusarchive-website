@@ -21,7 +21,7 @@ onMounted(() => {
     <div class="server_viewer_wrapper">
         <span>TEMPSEARCH </span><input @input="setSearch">
         <div class="server_viewer">
-            <ServerEntry v-for="server in getShownServerList()" :data="server" />
+            <ServerEntry  v-for="server in getShownServerList()" :key="server.ip" :data="server" />
         </div>
         <div id="scanning">
             <h4>Scanning for games on your local network</h4>
