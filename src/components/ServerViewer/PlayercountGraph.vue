@@ -11,28 +11,26 @@ import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { getServerSnapshotsForDateRange } = useSnapshots();
 
 const data: Ref<any> = ref({
-  labels: ['', ''],
-  datasets: [
-    {
-      label: 'Loading data...',
-      data: [1, 1],
-      borderColor: '#fc9802',
-      backgroundColor: '#fcad02'
-    }
-  ]
+    labels: ['', ''],
+    datasets: [{
+        label: 'Loading data...',
+        data: [1, 1],
+        borderColor: '#fc9802',
+        backgroundColor: '#fcad02'
+    }]
 })
 
 const options: any = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: false // Hide legend
-  },
-  scales: {
-    x: {
-      display: false // Hide X axis labels
-    }
-  }   
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: false // Hide legend
+    },
+    scales: {
+        x: {
+            display: false // Hide X axis labels
+        }
+    }   
 }
 
 const playerStatsDiv = ref(null) as unknown as Ref<HTMLDivElement>;
@@ -41,14 +39,13 @@ function updateGraph() {
     if (getServerSnapshotsForDateRange().length == 0)
         return
     
-    
     const snapshots = getServerSnapshotsForDateRange();
 
     const divWidth = playerStatsDiv.value.clientWidth;
     const snapshotsLen = snapshots.length;
-    let oneEvery = 0
+    let oneEvery = 1
     if (divWidth < snapshotsLen)
-        oneEvery = Math.floor((snapshotsLen / playerStatsDiv.value.clientWidth) * 4);
+        oneEvery = Math.floor((snapshotsLen / playerStatsDiv.value.clientWidth));
     
     let lastPlayersOn = Number.NaN;
     let snapshot = null;
@@ -58,10 +55,10 @@ function updateGraph() {
         if (i % oneEvery != 0) 
         continue
       
-      snapshot = snapshots[i];
-      labels.push(snapshot.save_date.toLocaleString("fr-FR"))
-      lastPlayersOn = (snapshot.players_on) ? snapshot.players_on : lastPlayersOn;
-      playerCount.push(lastPlayersOn)
+        snapshot = snapshots[i];
+        labels.push(snapshot.save_date.toLocaleString("fr-FR"))
+        lastPlayersOn = (snapshot.players_on) ? snapshot.players_on : lastPlayersOn;
+        playerCount.push(lastPlayersOn)
     }
 
     data.value ={
@@ -74,7 +71,8 @@ function updateGraph() {
             data: playerCount,
             tension: 0.3,
             fill: true,
-            pointRadius: 1,
+            pointRadius: 0,
+            pointBorderWidth: 0,
             pointHoverRadius: 4
           }
         ]
@@ -82,7 +80,7 @@ function updateGraph() {
 }
 
 watch(getServerSnapshotsForDateRange, () => {
-  updateGraph();
+    updateGraph();
 });
 onMounted(() => {
     updateGraph();
@@ -95,9 +93,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-<div ref="playerStatsDiv" id="player_stats">
-    <Line :data="data" :options="options"/>
-  </div>
+    <div ref="playerStatsDiv" id="player_stats">
+        <Line :data="data" :options="options"/>
+    </div>
 </template>
 
 <style scoped>
