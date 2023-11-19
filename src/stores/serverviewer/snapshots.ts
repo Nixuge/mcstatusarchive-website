@@ -27,10 +27,14 @@ export const useSnapshots = defineStore('snapshots', () => {
         return newSnapshotDateList;
     })
 
-    async function requestServerSnapshots(ip: string) {
+    async function requestServerSnapshots(ip: string, refSpan: Ref<HTMLSpanElement>) {
+        refSpan.value.textContent = "Loading content..."
+
         const rawData: any[][] = await fetch(`${API_URL}/get_all_server_data/${ip}`)
             .then(data => data.json());
         
+        refSpan.value.textContent = "Request done, parsing content..."
+
         snapshots.value = rawData.map(sublist => {
             return Object.fromEntries(keys.map((key, index) => [key, sublist[index]]));
         }) as ServerSnapshot[];
@@ -39,6 +43,7 @@ export const useSnapshots = defineStore('snapshots', () => {
             snapshot.save_date = new Date(snapshot.save_time * 1000);
         })        
         setStartEndDates(snapshots.value[0].save_date, snapshots.value[snapshots.value.length - 1].save_date);
+        refSpan.value.textContent = "Loaded & parsed content successfully. "
     }
 
     function getServerSnapshots() {

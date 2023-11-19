@@ -24,9 +24,7 @@ function exit() {
 }
 
 onMounted(async() => {
-    refJson.value.textContent = "Loading content..."
-    await requestServerSnapshots(ip);
-    refJson.value.textContent = "Loaded & converted content successfully !"
+    await requestServerSnapshots(ip, refJson);
 });
 
 </script>
