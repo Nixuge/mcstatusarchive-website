@@ -9,9 +9,8 @@ const { setStartEndDates, getStartEndUnix } = useDates()
 import { useChangeKey } from './changekey';
 const { getCurrentKey } = useChangeKey()
 
-const keys = ["save_time", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
-
-export const fullKeys = [...keys, "save_date"];
+const mapKeys = ["save_time", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
+const fullKeys = [...mapKeys, "save_date"];
 
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
@@ -58,7 +57,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         refSpan.value.textContent = "Request done, parsing content..."
 
         snapshots.value = rawData.map(sublist => {
-            return Object.fromEntries(keys.map((key, index) => [key, sublist[index]]));
+            return Object.fromEntries(mapKeys.map((key, index) => [key, sublist[index]]));
         }) as ServerSnapshot[];
         
         snapshots.value.forEach(snapshot => {
