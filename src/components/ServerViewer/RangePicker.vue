@@ -43,7 +43,7 @@ onMounted(() => {
 
 <style>
 .dp__main {
-    width: 50%;
+    /* width: 50%; */
     margin: auto;
 }
 </style>

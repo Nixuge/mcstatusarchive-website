@@ -25,7 +25,7 @@ const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: false // Hide legend
+        // legend: false // Hide legend
     },
     scales: {
         x: {
@@ -108,7 +108,7 @@ function updateGraph() {
     data.value = {
         labels: labels,
         datasets: [{
-            label: 'Players on',
+            label: 'Online Players',
             borderColor: '#fc9802',
             backgroundColor: '#fcad02',
             data: playerCount,
@@ -145,9 +145,9 @@ onUnmounted(() => {
 
 <style scoped>
 #player_stats {
-  width: 90%;
-  background-color: rgba(0, 0, 0, 0.3);
-  margin: auto;
-  height: 100px;
+    width: 90%;
+    background-color: rgba(0, 0, 0, 0.3);
+    margin: auto;
+    height: 130px;
 }
 </style>

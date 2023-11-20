@@ -2,11 +2,16 @@ import { computed, ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { ServerSnapshot } from '@/ts/types/serversnapshot';
 import { API_URL } from '@/constants';
-import { useDates } from './dates';
 
+import { useDates } from './dates';
 const { setStartEndDates, getStartEndUnix } = useDates()
 
+import { useChangeKey } from './changekey';
+const { getCurrentKey } = useChangeKey()
+
 const keys = ["save_time", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
+
+export const fullKeys = [...keys, "save_date"];
 
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
@@ -25,6 +30,23 @@ export const useSnapshots = defineStore('snapshots', () => {
                 newSnapshotDateList.push(snapshot);
         }
         return newSnapshotDateList;
+    })
+
+    const snapshotsDateCategory: Ref<ServerSnapshot[]> = computed(() => {
+        if (getServerSnapshotsForDateRange().length == 0)
+            return [];
+        if (getCurrentKey() == "All")
+            return getServerSnapshotsForDateRange();
+
+        const newList: ServerSnapshot[] = [];
+        for (const snapshot of getServerSnapshotsForDateRange()) {
+            // @ts-ignore
+            const snapshotElement = snapshot[getCurrentKey()];
+            if (snapshotElement != undefined && snapshotElement != null) { // just in case
+                newList.push(snapshotElement);
+            }
+        }
+        return newList;
     })
 
     async function requestServerSnapshots(ip: string, refSpan: Ref<HTMLSpanElement>) {
@@ -53,11 +75,14 @@ export const useSnapshots = defineStore('snapshots', () => {
     function getServerSnapshotsForDateRange() {
         return snapshotsDate.value;
     }
+    function getServerSnapshotsForDateRangeAndCategory() {
+        return snapshotsDateCategory.value;
+    }
 
     // Ow typescript
     function getLatestServerSnapshotFull() {
         const latestServer = {} as any;
-        const remainingKeys = [...keys, "save_date"];
+        const remainingKeys = [...fullKeys];
         
         for (const snapshot of [...getServerSnapshots()].reverse() as any[]) {            
             for (const key of remainingKeys) {
@@ -76,5 +101,5 @@ export const useSnapshots = defineStore('snapshots', () => {
         snapshots.value = [];
     }
 
-    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, reset }
+    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, getServerSnapshotsForDateRangeAndCategory, reset }
 })
