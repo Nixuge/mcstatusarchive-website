@@ -14,6 +14,16 @@ let minDate: Ref<Date> = ref(new Date());
 let maxDate: Ref<Date> = ref(new Date());
 
 watch(date, () => {
+    // if click on "x"
+    if (date.value == null) { 
+        const snapshots = getServerSnapshots();
+        const firstDate = snapshots[0].save_date;
+        const lastDate = snapshots[snapshots.length - 1].save_date
+        date.value = [firstDate, lastDate]
+        setStartEndDates(firstDate, lastDate);
+        return;
+    } 
+    // If setting normal date
     const startRangeDate = date.value[0] as Date;
     const endRangeDate = date.value[1] as Date;
     setStartEndDates(startRangeDate, endRangeDate)
