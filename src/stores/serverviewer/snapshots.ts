@@ -16,6 +16,8 @@ const fullKeys = [...mapKeys, "save_date"];
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
     
+    const firstSnapshotRebuild: Ref<ServerSnapshot> = ref(null) as unknown as Ref<ServerSnapshot>;
+    const lastSnapshotPadding: Ref<ServerSnapshot> = ref(null) as unknown as Ref<ServerSnapshot>;
     // A bit laggy but good enough
     const snapshotsDate: Ref<ServerSnapshot[]> = computed(() => {
         if (getServerSnapshots().length == 0)
@@ -27,11 +29,11 @@ export const useSnapshots = defineStore('snapshots', () => {
         
         // Note: we only need to reconstruct the first snapshot state, as the last data is obv
         // present in the shown graph. It's just there to make the graph render corretly if ending w a gap.
-        const firstSnapshotRebuild: ServerSnapshot = {
+        const _firstSnapshotRebuild: ServerSnapshot = {
             save_time: range[0],
             save_date: rangeDate[0]
         };
-        const lastSnapshotPadding: ServerSnapshot = {
+        const _lastSnapshotPadding: ServerSnapshot = {
             save_time: range[1],
             save_date: rangeDate[1]
         };
@@ -41,7 +43,7 @@ export const useSnapshots = defineStore('snapshots', () => {
             // to reconstruct the data of the first snapshot
             if (snapshot.save_time < range[0]) {
                 noTimeKeys.forEach((key) => {
-                    if (snapshot[key] != null) firstSnapshotRebuild[key] = snapshot[key];
+                    if (snapshot[key] != null) _firstSnapshotRebuild[key] = snapshot[key];
                 })
                 continue
             };
@@ -51,10 +53,11 @@ export const useSnapshots = defineStore('snapshots', () => {
             // Otherwise just add it normally
             newSnapshotDateList.push(snapshot);
         }
-        // Then return the list surrounded by filled 1st & last elements.
-        // Note that this adds 2 virtual technically non existent capture, 
-        // but it's needed to properly show eg graphs with holes in them.
-        return [firstSnapshotRebuild, ...newSnapshotDateList, lastSnapshotPadding];
+        // Assign refs at the end to avoid too many unneccesary changes.
+        firstSnapshotRebuild.value = _firstSnapshotRebuild;
+        lastSnapshotPadding.value = _lastSnapshotPadding;
+        
+        return newSnapshotDateList;
     })
 
     const snapshotsDateCategory: Ref<ServerSnapshot[]> = computed(() => {
@@ -100,6 +103,9 @@ export const useSnapshots = defineStore('snapshots', () => {
     function getServerSnapshotsForDateRange() {
         return snapshotsDate.value;
     }
+    function getServerSnapshotsForDateRangePaddings() {
+        return [firstSnapshotRebuild.value, ...snapshotsDate.value, lastSnapshotPadding.value];
+    }
     function getServerSnapshotsForDateRangeAndCategory() {
         return snapshotsDateCategory.value;
     }
@@ -126,5 +132,5 @@ export const useSnapshots = defineStore('snapshots', () => {
         snapshots.value = [];
     }
 
-    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, getServerSnapshotsForDateRangeAndCategory, reset }
+    return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, getServerSnapshotsForDateRangeAndCategory, getServerSnapshotsForDateRangePaddings, reset }
 })

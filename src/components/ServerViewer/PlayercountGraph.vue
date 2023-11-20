@@ -9,7 +9,7 @@ chartjs.register(...registerables);
 import 'chartjs-adapter-luxon'
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
-const { getServerSnapshotsForDateRange } = useSnapshots();
+const { getServerSnapshotsForDateRange, getServerSnapshotsForDateRangePaddings } = useSnapshots();
 
 const data: Ref<any> = ref({
     labels: ['', ''],
@@ -50,11 +50,11 @@ function resizeUpdateGraph() {
 
 function updateGraph() {
     // Do not calculate if snapshots is empty (not yet loaded)
-    const snapshots = getServerSnapshotsForDateRange();
-    if (snapshots.length == 0) {
+    if (getServerSnapshotsForDateRange().length == 0) {
         setGraphValue([], []);
         return
-    }
+    }    
+    const snapshots = getServerSnapshotsForDateRangePaddings();
 
     const divWidth = playerStatsDiv.value.clientWidth;
     const snapshotsLen = snapshots.length;
