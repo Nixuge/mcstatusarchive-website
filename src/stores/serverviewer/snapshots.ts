@@ -4,12 +4,13 @@ import type { ServerSnapshot } from '@/ts/types/serversnapshot';
 import { API_URL } from '@/constants';
 
 import { useDates } from './dates';
-const { setStartEndDates, getStartEndUnix } = useDates()
+const { setStartEndDates, getStartEndUnix, getStartEndDate } = useDates()
 
 import { useChangeKey } from './changekey';
 const { getCurrentKey } = useChangeKey()
 
-const mapKeys = ["save_time", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
+const noTimeKeys = ["players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"];
+const mapKeys = ["save_time", ...noTimeKeys];
 const fullKeys = [...mapKeys, "save_date"];
 
 export const useSnapshots = defineStore('snapshots', () => {
@@ -22,19 +23,38 @@ export const useSnapshots = defineStore('snapshots', () => {
         const range = getStartEndUnix();
         if (range[0] == 0)
             return getServerSnapshots();
-            
+        
+        const firstSnapshotState: ServerSnapshot = {
+            save_time: range[0],
+            save_date: getStartEndDate()[0]
+        };
         const newSnapshotDateList = [];
         for (const snapshot of getServerSnapshots()) {
-            if (snapshot.save_time > range[0] && snapshot.save_time < range[1])
-                newSnapshotDateList.push(snapshot);
+            // All data should be ordered by save time
+            // First, if not yet at bottom of range, save data to reconstruct the data of the 
+            // first snapshot 
+            if (snapshot.save_time < range[0]) {
+                noTimeKeys.forEach((key) => {
+                    if (snapshot[key] != null) firstSnapshotState[key] = snapshot[key];
+                })
+                continue
+            };
+            // Next, if above the top of the range, we know we're done, so break
+            if (snapshot.save_time > range[1]) 
+                break;
+            // Otherwise just add it normally
+            newSnapshotDateList.push(snapshot);
         }
-        return newSnapshotDateList;
+        // Then return graph with the first snapshot state as the first element.
+        // Note that this adds a virtual technically non existent capture, 
+        // but it's needed to properly show eg graphs with holes in them.
+        return [firstSnapshotState, ...newSnapshotDateList];
     })
 
     const snapshotsDateCategory: Ref<ServerSnapshot[]> = computed(() => {
         if (getServerSnapshotsForDateRange().length == 0)
             return [];
-        if (getCurrentKey() == "All")
+        if (getCurrentKey() == "all")
             return getServerSnapshotsForDateRange();
 
         const newList: ServerSnapshot[] = [];
@@ -80,10 +100,10 @@ export const useSnapshots = defineStore('snapshots', () => {
 
     // Ow typescript
     function getLatestServerSnapshotFull() {
-        const latestServer = {} as any;
+        const latestServer: { [key: string]: any } = {};
         const remainingKeys = [...fullKeys];
         
-        for (const snapshot of [...getServerSnapshots()].reverse() as any[]) {            
+        for (const snapshot of [...getServerSnapshots()].reverse()) {            
             for (const key of remainingKeys) {
                 if (snapshot[key]) {
                     latestServer[key] = snapshot[key]

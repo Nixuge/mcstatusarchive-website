@@ -18,6 +18,9 @@ export const useDates = defineStore('dates', () => {
     function getStartEndUnix() {
         return [startRangeUnix.value, endRangeUnix.value];
     }
+    function getStartEndDate() {
+        return [startRange.value, endRange.value];
+    }
 
     function reset() {
         startRange.value = new Date();
@@ -26,5 +29,5 @@ export const useDates = defineStore('dates', () => {
         endRangeUnix.value = 0;
     }
 
-    return { setStartEndDates, getStartEndUnix, reset }
+    return { setStartEndDates, getStartEndUnix, getStartEndDate, reset }
 })

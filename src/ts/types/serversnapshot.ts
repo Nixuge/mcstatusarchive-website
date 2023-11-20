@@ -8,5 +8,5 @@ export interface ServerSnapshot {
     players_on?: number;
     version_name?: string;
     version_protocol?: number;
-    fail?: boolean; // To be used to fill in the blanks ?
+    [key: string]: any; // Indexable (= accessible with interface["property"])
 }

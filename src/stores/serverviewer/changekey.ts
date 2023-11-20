@@ -2,7 +2,7 @@ import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useChangeKey = defineStore('changekey', () => {
-    const currentKey = ref("All");
+    const currentKey = ref("all");
 
     function setCurrentKey(key: string) {
         currentKey.value = key;
@@ -13,7 +13,7 @@ export const useChangeKey = defineStore('changekey', () => {
     }
 
     function reset() {
-        currentKey.value = "All";
+        currentKey.value = "all";
     }
 
     return { setCurrentKey, getCurrentKey, reset }

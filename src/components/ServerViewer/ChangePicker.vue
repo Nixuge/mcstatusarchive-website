@@ -6,8 +6,8 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import { useChangeKey } from '@/stores/serverviewer/changekey';
 const { setCurrentKey } = useChangeKey();
 
-const selected = ref('All');
-const keys = ["All", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
+const selected = ref('all');
+// const keys = ["All", "players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"]
 watch(selected, () => {
     setCurrentKey(selected.value);
 })
@@ -20,7 +20,15 @@ onMounted(() => {
 <template>
     <div class="owo dp__theme_dark dp__main dp__input">
         <select v-model="selected" class="selector">
-            <option v-for="key of keys" :value="key">{{ key }}</option>
+            <option value="all">All</option>
+            <option value="players_on">Online Players</option>
+            <option value="players_max">Max Players</option>
+            <option value="ping">Ping</option>
+            <option value="players_sample">Player sample</option>
+            <option value="version_protocol">Version Protocol</option>
+            <option value="version_name">Version Name</option>
+            <option value="motd">MOTD</option>
+            <!-- <option v-for="key of keys" :value="key">{{ key }}</option> -->
         </select>
     </div>
 </template>

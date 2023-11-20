@@ -51,8 +51,10 @@ function resizeUpdateGraph() {
 function updateGraph() {
     // Do not calculate if snapshots is empty (not yet loaded)
     const snapshots = getServerSnapshotsForDateRange();
-    if (snapshots.length == 0)
+    if (snapshots.length == 0) {
+        setGraphValue([], []);
         return
+    }
 
     const divWidth = playerStatsDiv.value.clientWidth;
     const snapshotsLen = snapshots.length;
@@ -105,6 +107,10 @@ function updateGraph() {
         playerCount.push(playerAverage)
     }
 
+    setGraphValue(labels, playerCount);
+}
+
+function setGraphValue(labels: number[], playerCount: number[]) {
     data.value = {
         labels: labels,
         datasets: [{
