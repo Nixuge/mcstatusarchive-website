@@ -27,7 +27,6 @@ export const useSnapshots = defineStore('snapshots', () => {
             return getServerSnapshots();
         const rangeDate = getStartEndDate();
         
-        // Note: we only need to reconstruct the first snapshot state, as the last data is obv
         // present in the shown graph. It's just there to make the graph render corretly if ending w a gap.
         const _firstSnapshotRebuild: ServerSnapshot = {
             save_time: range[0],
@@ -110,7 +109,6 @@ export const useSnapshots = defineStore('snapshots', () => {
         return snapshotsDateCategory.value;
     }
 
-    // Ow typescript
     function getLatestServerSnapshotFull() {
         const latestServer: { [key: string]: any } = {};
         const remainingKeys = [...fullKeys];

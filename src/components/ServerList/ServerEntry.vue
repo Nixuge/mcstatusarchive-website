@@ -15,13 +15,25 @@ const online_players = props.data.players_on;
 const max_players = props.data.players_max;
 
 import { replaceColorCodes } from '@/js/MinecraftColorCodes'
-const motd_formatted: DocumentFragment = (props.data.motd == null) ? 
-        replaceColorCodes("§4Can't connect to server") : replaceColorCodes(props.data.motd);
+let motd_formatted: DocumentFragment;
+if (props.data.motd == null) {
+    motd_formatted = replaceColorCodes("§4Can't connect to server");
+} else if (props.data.motd[0] == '{') {
+    const span = document.createElement("span");
+    span.textContent = "Not yet implemented - JSON MOTD";
+
+    const frag = new DocumentFragment();
+    frag.appendChild(span);
+
+    motd_formatted = frag;
+} else {
+    motd_formatted = replaceColorCodes(props.data.motd);
+}
 
 const motdRef: Ref<HTMLElement> = ref(null) as unknown as Ref<HTMLElement>;
 
 onMounted(() => {
-        motdRef.value.appendChild(motd_formatted)
+    motdRef.value.appendChild(motd_formatted)
 });
 // const props = defineProps<{
 //   ip: string,
