@@ -10,7 +10,7 @@ import { defineStore } from 'pinia'
 
 // For now using this to keep the order right,
 // otherwise it doesn't seem to be ordered.
-export const keyOrder = ["request", "parsing", "recalculateGraph", "graphDisplay"]
+export const keyOrder = ["request", "parsing", "grabLatestSnapshotData", "grabSnapshotsDateRange", "recalculateGraph", "graphDisplay"]
 
 export const useTimings = defineStore('timings', () => {
     const _isShown = ref(false);

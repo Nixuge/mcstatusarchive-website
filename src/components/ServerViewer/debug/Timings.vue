@@ -18,17 +18,18 @@ onMounted(() => {
             <h1>Load times</h1>
             <h2 v-for="key of keyOrder">"{{ key }}": {{ getTiming(key) }}ms</h2>
 
-            <h3>Some timings (graphDisplay) can be incorrect if recalculated multiple times close to each other</h3>
+            <h3><br>Some timings (graphDisplay) can be incorrect if recalculated multiple times close to each other</h3>
         </div>
     </div>
 </template>
 
 <style scoped>
-h3 {
+/* h3 {
     position: absolute;
     bottom: 20px;
-}
+} */
 #debugwindow {
+    overflow: auto;
     cursor: auto;
     text-align: left;
     padding: 20px;
@@ -36,8 +37,8 @@ h3 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60%;
-    height: 70%;
+    width: 70%;
+    height: 80%;
     background-color: rgba(0, 0, 0, 0.4);
 }
 #debugwindowwrap {

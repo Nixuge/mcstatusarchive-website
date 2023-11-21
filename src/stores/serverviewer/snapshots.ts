@@ -23,6 +23,7 @@ export const useSnapshots = defineStore('snapshots', () => {
     const lastSnapshotPadding: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
     // A bit laggy but good enough
     const snapshotsDate: Ref<ServerSnapshot[]> = computed(() => {
+        startTiming("grabSnapshotsDateRange");
         if (getServerSnapshots().length == 0)
             return [];
         const range = getStartEndUnix();
@@ -58,7 +59,8 @@ export const useSnapshots = defineStore('snapshots', () => {
         // Assign refs at the end to avoid too many unneccesary changes.
         firstSnapshotRebuild.value = _firstSnapshotRebuild;
         lastSnapshotPadding.value = _lastSnapshotPadding;
-        
+
+        endTiming("grabSnapshotsDateRange");
         return newSnapshotDateList;
     })
 
@@ -114,6 +116,7 @@ export const useSnapshots = defineStore('snapshots', () => {
     }
 
     function getLatestServerSnapshotFull() {
+        startTiming("grabLatestSnapshotData");
         const latestServer: { [key: string]: any } = {};
         const remainingKeys = [...fullKeys];
         
@@ -127,6 +130,7 @@ export const useSnapshots = defineStore('snapshots', () => {
             if (remainingKeys.length == 0)
                 break;
         }        
+        endTiming("grabLatestSnapshotData")
         return latestServer as ServerSnapshot;
     }
 
