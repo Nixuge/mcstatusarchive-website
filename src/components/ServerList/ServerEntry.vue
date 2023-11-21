@@ -2,6 +2,7 @@
 import { onMounted, ref, type Ref } from 'vue';
 import { API_URL } from '@/constants';
 import { useServerList, type Server } from '@/stores/serverlist';
+import { parseMotd } from '@/ts/utils/motd';
 const { getSelectedServer, changeSelectedServer } = useServerList()
 
 const props = defineProps<{
@@ -14,14 +15,11 @@ const name = undefined;
 const online_players = props.data.players_on;
 const max_players = props.data.players_max;
 
-import { replaceColorCodes } from '@/js/MinecraftColorCodes'
-const motd_formatted: DocumentFragment = (props.data.motd == null) ? 
-        replaceColorCodes("§4Can't connect to server") : replaceColorCodes(props.data.motd);
-
 const motdRef: Ref<HTMLElement> = ref(null) as unknown as Ref<HTMLElement>;
+const motd_formatted = parseMotd(props.data.motd)
 
 onMounted(() => {
-    motdRef.value.appendChild(motd_formatted)
+    motdRef.value.innerHTML = motd_formatted;
 });
 // const props = defineProps<{
 //   ip: string,

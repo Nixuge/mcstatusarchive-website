@@ -2,7 +2,7 @@
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
 import type { ServerSnapshot } from '@/ts/types/serversnapshot';
 import { ref, watch, type Ref, onMounted } from 'vue';
-import { replaceColorCodes } from '@/js/MinecraftColorCodes';
+import { parseMotd } from '@/ts/utils/motd';
 
 const { getLatestServerSnapshotFull } = useSnapshots();
 
@@ -19,20 +19,24 @@ const latestSnapshot = ref({
     version_name: "",
     version_protocol: "",
 }) as unknown as Ref<ServerSnapshot>;
-    
+
+function setAll() {
+    if (!latestSnapshot.value)
+        return;
+    if (motdSpan.value)
+        motdSpan.value.innerHTML = "MOTD:<br>" + parseMotd(latestSnapshot.value.motd, "Unknown");
+    if (versionNameSpan.value)
+        versionNameSpan.value.innerHTML = "Version name:<br>" + parseMotd(latestSnapshot.value.version_name, "Unknown");  
+}
+
+
 watch(getLatestServerSnapshotFull, () => {
     latestSnapshot.value = getLatestServerSnapshotFull();
-    if (motdSpan.value)
-        motdSpan.value.appendChild(replaceColorCodes(latestSnapshot.value.motd))   
-    if (versionNameSpan.value)
-        versionNameSpan.value.appendChild(replaceColorCodes(latestSnapshot.value.version_name))   
+    setAll();
 })
 
 onMounted(() => {
-    if (latestSnapshot.value) {
-        versionNameSpan.value.appendChild(replaceColorCodes(latestSnapshot.value.version_name))
-        motdSpan.value.appendChild(replaceColorCodes(latestSnapshot.value.motd))
-    }
+    setAll();
 })
 </script>
 
