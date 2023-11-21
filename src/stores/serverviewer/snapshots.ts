@@ -9,6 +9,9 @@ const { setStartEndDates, getStartEndUnix, getStartEndDate } = useDates()
 import { useChangeKey } from './changekey';
 const { getCurrentKey } = useChangeKey()
 
+import { useTimings } from './debug/timings';
+const { startTiming, endTiming, endStartTiming } = useTimings()
+
 const noTimeKeys = ["players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"];
 const mapKeys = ["save_time", ...noTimeKeys];
 const fullKeys = [...mapKeys, "save_date"];
@@ -76,13 +79,13 @@ export const useSnapshots = defineStore('snapshots', () => {
         return newList;
     })
 
-    async function requestServerSnapshots(ip: string, refSpan: Ref<HTMLSpanElement>) {
-        refSpan.value.textContent = "Loading content..."
+    async function requestServerSnapshots(ip: string) {
+        startTiming("request");
 
         const rawData: any[][] = await fetch(`${API_URL}/get_all_server_data/${ip}`)
             .then(data => data.json());
         
-        refSpan.value.textContent = "Request done, parsing content..."
+        endStartTiming("request", "parsing");
 
         snapshots.value = rawData.map(sublist => {
             return Object.fromEntries(mapKeys.map((key, index) => [key, sublist[index]]));
@@ -92,7 +95,8 @@ export const useSnapshots = defineStore('snapshots', () => {
             snapshot.save_date = new Date(snapshot.save_time * 1000);
         })        
         setStartEndDates(snapshots.value[0].save_date, snapshots.value[snapshots.value.length - 1].save_date);
-        refSpan.value.textContent = "Loaded & parsed content successfully. "
+        
+        endTiming("parsing");
     }
 
     function getServerSnapshots() {

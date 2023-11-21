@@ -5,20 +5,25 @@ import ChangePicker from './ChangePicker.vue'
 import SnapshotsViewer from './SnapshotsViewer.vue'
 import LatestSnapshot from './LatestSnapshot.vue'
 
+import DebugTimings from './debug/Timings.vue'
+
 import router from '@/router';
 import { onMounted, ref, type Ref } from 'vue';
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { requestServerSnapshots, reset: resetSnapshots } = useSnapshots();
+
 import { useDates } from '@/stores/serverviewer/dates';
 const { reset: resetDates } = useDates();
+
 import { useChangeKey } from '@/stores/serverviewer/changekey';
 const { reset: resetKey } = useChangeKey();
 
+import { useTimings } from '@/stores/serverviewer/debug/timings';
+const { setShown } = useTimings();
+
 const params = router.currentRoute.value.params;
 const ip = params.server as string;
-
-const refJson = ref(null) as unknown as Ref<HTMLSpanElement>;
 
 function exit() {
     resetSnapshots();
@@ -28,7 +33,7 @@ function exit() {
 }
 
 onMounted(async() => {
-    await requestServerSnapshots(ip, refJson);
+    await requestServerSnapshots(ip);
 });
 
 </script>
@@ -36,7 +41,7 @@ onMounted(async() => {
 <template>
     <span id="goback" @click="exit">&lt; back</span>
     <div id="stats">
-        <span id="status">Status: <span ref="refJson"></span></span>
+        <span id="status" @click="setShown(true)">Load timings</span>
         <h1>Server stats for {{ ip }}</h1>
         <LatestSnapshot />
         <PlayercountGraph />
@@ -45,6 +50,8 @@ onMounted(async() => {
             <ChangePicker />
         </div>
         <SnapshotsViewer />
+
+        <DebugTimings />
     </div>
 </template>
 
@@ -67,6 +74,7 @@ h1 {
     background-color: rgba(0, 0, 0, 0.3);
     padding-bottom: 2px;
     padding-left: 2px;
+    cursor: pointer;
 }
 #stats {
     text-align: center;
