@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { useSnapshots } from '@/stores/serverviewer/snapshots';
 import type { ServerSnapshot } from '@/ts/types/serversnapshot';
 import { ref, watch, type Ref, onMounted } from 'vue';
-import { parseMotd } from '@/ts/utils/motd';
 
+import { parseMotd } from '@/ts/utils/motd';
+import { getIp } from '@/ts/utils/route'
+
+import { useServerList } from '@/stores/serverlist';
+const { getServerList } = useServerList();
+
+import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { getLatestServerSnapshotFull } = useSnapshots();
 
 const motdSpan = ref(null) as unknown as Ref<HTMLSpanElement>;
@@ -20,23 +25,21 @@ const latestSnapshot = ref({
     version_protocol: "",
 }) as unknown as Ref<ServerSnapshot>;
 
-function setAll() {
-    if (!latestSnapshot.value)
-        return;
-    if (motdSpan.value)
-        motdSpan.value.innerHTML = "MOTD:<br>" + parseMotd(latestSnapshot.value.motd, "Unknown");
-    if (versionNameSpan.value)
-        versionNameSpan.value.innerHTML = "Version name:<br>" + parseMotd(latestSnapshot.value.version_name, "Unknown");  
-}
-
-
 watch(getLatestServerSnapshotFull, () => {
     latestSnapshot.value = getLatestServerSnapshotFull();
-    setAll();
 })
 
 onMounted(() => {
-    setAll();
+    const data = getServerList();
+    // For some reason (see snapshots.ts$latestSnapshot) the version name is sometimes missing
+    // from the latest snapshot, so grabbing it from the serverlist as a workaround
+    // (also grabbing the MOTD while at it because it's simpler tbh)
+    data.forEach((elem) => {
+        if (elem.ip == getIp()) {            
+            motdSpan.value.innerHTML = "MOTD:<br>" + parseMotd(elem.motd, "Unknown");
+            versionNameSpan.value.innerHTML = "Version name:<br>" + parseMotd(elem.version_name, "Unknown");  
+        }
+    })
 })
 </script>
 

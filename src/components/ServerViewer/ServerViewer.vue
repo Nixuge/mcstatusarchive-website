@@ -8,6 +8,7 @@ import LatestSnapshot from './LatestSnapshot.vue'
 import DebugTimings from './debug/Timings.vue'
 
 import { resetAll } from '@/ts/utils/reset'
+import { getIp } from '@/ts/utils/route'
 
 import router from '@/router';
 import { onMounted } from 'vue';
@@ -17,12 +18,6 @@ const { requestServerSnapshots, getServerSnapshots } = useSnapshots();
 
 import { useTimings } from '@/stores/serverviewer/debug/timings';
 const { setShown } = useTimings();
-
-function getIp() {
-    const params = router.currentRoute.value.params;
-    const data = params.server as string;
-    return data;
-}
 
 
 function exit() {

@@ -18,6 +18,30 @@ const fullKeys = [...mapKeys, "save_date"];
 
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
+
+    const latestSnapshot = computed(() => {
+        startTiming("grabLatestSnapshotData");
+        const latestServer: { [key: string]: any } = {};
+        const remainingKeys = [...fullKeys];
+
+        // Note: For some reason I cannot possibly explain,
+        // this does NOT grab the version_name, even tho it's technically
+        // in snapshots.value. I don't know how to fix it, adding random garbage at the start
+        // seems to make it show up, but that's not really a "fix".
+        // Really looks like a Vue bug.
+        for (const snapshot of [...getServerSnapshots()].reverse()) {
+            for (const key of remainingKeys) {
+                if (snapshot[key]) {
+                    latestServer[key] = snapshot[key]
+                    remainingKeys.splice(remainingKeys.indexOf(key), 1)
+                }
+            } 
+            if (remainingKeys.length == 0)
+                break;
+        }        
+        endTiming("grabLatestSnapshotData")
+        return latestServer as ServerSnapshot;
+    })
     
     const firstSnapshotRebuild: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
     const lastSnapshotPadding: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
@@ -44,14 +68,14 @@ export const useSnapshots = defineStore('snapshots', () => {
         for (const snapshot of getServerSnapshots()) {
             // First, if not yet at bottom of range, save data 
             // to reconstruct the data of the first snapshot
-            if (snapshot.save_time < range[0]) {
+            if (snapshot.save_time <= range[0]) {
                 noTimeKeys.forEach((key) => {
                     if (snapshot[key] != null) _firstSnapshotRebuild[key] = snapshot[key];
                 })
                 continue
             };
             // Next, if above the top of the range, we know we're done, so break
-            if (snapshot.save_time > range[1]) 
+            if (snapshot.save_time >= range[1]) 
                 break;
             // Otherwise just add it normally
             newSnapshotDateList.push(snapshot);
@@ -89,15 +113,16 @@ export const useSnapshots = defineStore('snapshots', () => {
         
         endStartTiming("request", "parsing");
 
-        snapshots.value = rawData.map(sublist => {
+        let _snapshots = rawData.map(sublist => {
             return Object.fromEntries(mapKeys.map((key, index) => [key, sublist[index]]));
         }) as ServerSnapshot[];
-        
-        snapshots.value.forEach(snapshot => {
+
+        _snapshots.forEach(snapshot => {
             snapshot.save_date = new Date(snapshot.save_time * 1000);
-        })        
-        setStartEndDates(snapshots.value[0].save_date, snapshots.value[snapshots.value.length - 1].save_date);
+        })
+        setStartEndDates(_snapshots[0].save_date, _snapshots[_snapshots.length - 1].save_date);
         
+        snapshots.value = _snapshots;
         endTiming("parsing");
     }
 
@@ -116,22 +141,7 @@ export const useSnapshots = defineStore('snapshots', () => {
     }
 
     function getLatestServerSnapshotFull() {
-        startTiming("grabLatestSnapshotData");
-        const latestServer: { [key: string]: any } = {};
-        const remainingKeys = [...fullKeys];
-        
-        for (const snapshot of [...getServerSnapshots()].reverse()) {            
-            for (const key of remainingKeys) {
-                if (snapshot[key]) {
-                    latestServer[key] = snapshot[key]
-                    remainingKeys.splice(remainingKeys.indexOf(key), 1)                    
-                }
-            } 
-            if (remainingKeys.length == 0)
-                break;
-        }        
-        endTiming("grabLatestSnapshotData")
-        return latestServer as ServerSnapshot;
+        return latestSnapshot.value;
     }
 
     function reset() {
