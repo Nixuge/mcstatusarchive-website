@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, type Ref } from 'vue';
-import { useTimings } from '@/stores/serverviewer/debug/timings';
+import { useTimings, keyOrder } from '@/stores/serverviewer/debug/timings';
 const { getTiming, isShown, setShown, getAllTimings } = useTimings();
 
 // watch(getTiming, () => {
@@ -16,12 +16,18 @@ onMounted(() => {
     <div v-if="isShown()" id="debugwindowwrap" @click="setShown(false)">
         <div id="debugwindow" @click.stop="">
             <h1>Load times</h1>
-            <h2 v-for="[key, value] of getAllTimings()">"{{ key }}": {{ value }}ms</h2>
+            <h2 v-for="key of keyOrder">"{{ key }}": {{ getTiming(key) }}ms</h2>
+
+            <h3>Some timings (graphDisplay) can be incorrect if recalculated multiple times close to each other</h3>
         </div>
     </div>
 </template>
 
 <style scoped>
+h3 {
+    position: absolute;
+    bottom: 20px;
+}
 #debugwindow {
     cursor: auto;
     text-align: left;

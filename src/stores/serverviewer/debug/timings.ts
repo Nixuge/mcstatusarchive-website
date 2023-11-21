@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 // export interface Timings {
@@ -7,6 +7,10 @@ import { defineStore } from 'pinia'
 //     show?: number,
 //     [key: string]: number | undefined
 // }
+
+// For now using this to keep the order right,
+// otherwise it doesn't seem to be ordered.
+export const keyOrder = ["request", "parsing", "recalculateGraph", "graphDisplay"]
 
 export const useTimings = defineStore('timings', () => {
     const _isShown = ref(false);
@@ -24,8 +28,11 @@ export const useTimings = defineStore('timings', () => {
     function startTiming(key: string)  {
         startTimings[key] = Date.now();
     }
-    function endTiming(key: string) {
-        timings.value[key] = Date.now() - startTimings[key];
+    // See PlayercountGraph as to why "offset" is here
+    function endTiming(key: string, offset?: number) {
+        if (offset == undefined) 
+            offset = 0
+        timings.value[key] = Date.now() - offset - startTimings[key];
     }
     function endStartTiming(endKey: string, startKey: string) {
         endTiming(endKey);

@@ -11,6 +11,9 @@ import 'chartjs-adapter-luxon'
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { getServerSnapshotsForDateRange, getServerSnapshotsForDateRangePaddings } = useSnapshots();
 
+import { useTimings } from '@/stores/serverviewer/debug/timings';
+const { startTiming, endTiming } = useTimings();
+
 const data: Ref<any> = ref({
     labels: ['', ''],
     datasets: [{
@@ -53,7 +56,10 @@ function updateGraph() {
     if (getServerSnapshotsForDateRange().length == 0) {
         setGraphValue([], []);
         return
-    }    
+    }
+
+    startTiming("recalculateGraph");
+
     const snapshots = getServerSnapshotsForDateRangePaddings();
 
     const divWidth = playerStatsDiv.value.clientWidth;
@@ -106,11 +112,13 @@ function updateGraph() {
         labels.push(snapshot.save_time * 1000)
         playerCount.push(playerAverage)
     }
-
+    endTiming("recalculateGraph");
     setGraphValue(labels, playerCount);
 }
 
 function setGraphValue(labels: number[], playerCount: number[]) {
+    startTiming("graphDisplay")
+    
     data.value = {
         labels: labels,
         datasets: [{
@@ -128,6 +136,11 @@ function setGraphValue(labels: number[], playerCount: number[]) {
             spanGaps: false // only works if you fill in your data with NaNs
         }]
     }
+    // Waiting a timeout so vue has the time to trigger the graph update,
+    // then just wait until it unfreezes and calls this function.
+    setTimeout(() => {
+        endTiming("graphDisplay", 50)
+    }, 50)
 }
 
 watch(getServerSnapshotsForDateRange, () => {
