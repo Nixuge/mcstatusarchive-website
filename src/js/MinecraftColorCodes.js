@@ -126,6 +126,8 @@ function clearObfuscators() {
 export function replaceColorCodes(input) {
     if (!input)
         return document.createDocumentFragment();
+    if (input[0] == '{')
+        return replaceColorCodes("§cJSON MOTD - Not yet implemented")
     clearObfuscators();
     var outputString = parseStyle(input);
     return outputString;
