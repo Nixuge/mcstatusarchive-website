@@ -45,6 +45,9 @@ export const useTimings = defineStore('timings', () => {
     function getAllTimings() {
         return Object.entries(timings.value);
     }
+    function reset() {
+        timings.value = {};
+    }
 
-    return { setShown, isShown, startTiming, endTiming, endStartTiming, getTiming, getAllTimings }
+    return { setShown, isShown, startTiming, endTiming, endStartTiming, getTiming, getAllTimings, reset }
 })

@@ -7,17 +7,13 @@ import LatestSnapshot from './LatestSnapshot.vue'
 
 import DebugTimings from './debug/Timings.vue'
 
+import { resetAll } from '@/ts/utils/reset'
+
 import router from '@/router';
-import { onMounted, ref, type Ref } from 'vue';
+import { onMounted } from 'vue';
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
-const { requestServerSnapshots, reset: resetSnapshots } = useSnapshots();
-
-import { useDates } from '@/stores/serverviewer/dates';
-const { reset: resetDates } = useDates();
-
-import { useChangeKey } from '@/stores/serverviewer/changekey';
-const { reset: resetKey } = useChangeKey();
+const { requestServerSnapshots } = useSnapshots();
 
 import { useTimings } from '@/stores/serverviewer/debug/timings';
 const { setShown } = useTimings();
@@ -26,9 +22,7 @@ const params = router.currentRoute.value.params;
 const ip = params.server as string;
 
 function exit() {
-    resetSnapshots();
-    resetDates();
-    resetKey();
+    resetAll();
     router.push('/');
 }
 
