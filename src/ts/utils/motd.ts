@@ -1,12 +1,12 @@
-import { autoToHTML as motdParser } from '@sfirew/minecraft-motd-parser'
+import { textToHTML, JSONToHTML } from '@sfirew/minecraft-motd-parser'
 
 
 export function parseMotd(motd: string | undefined, nullMessage?: string) {
     if (motd === null || motd === undefined) {
-        return (nullMessage) ? nullMessage : "§6Can't connect to server";
+        return textToHTML((nullMessage) ? nullMessage : "§4Can't connect to server");
     } else if (motd[0] == '{') {
         try {
-            const data = motdParser(JSON.parse(motd));            
+            const data = JSONToHTML(JSON.parse(motd));            
             return data;
         } catch (error) {
             // Multiple reasons this can happen:
@@ -15,9 +15,9 @@ export function parseMotd(motd: string | undefined, nullMessage?: string) {
             // - The MOTD is simply a string that starts with { (unlikely but possible)
             // --- this check is here for performances reason tho, I don't want to try and parse everything as json
             // --- before falling back if it fails.
-            return motdParser("§cFailed to parse MOTD: " + error);
+            return textToHTML("§cFailed to parse MOTD: " + error);
         }
     } else {
-        return motdParser(motd);
+        return textToHTML(motd);
     }
 }
