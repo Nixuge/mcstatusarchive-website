@@ -8,8 +8,6 @@ import { defineStore } from 'pinia'
 //     [key: string]: number | undefined
 // }
 
-export const timingKeys = ["request", "parsing", "display"];
-
 export const useTimings = defineStore('timings', () => {
     const _isShown = ref(false);
     // const timings: Ref<Timings> = ref({} as Timings);
@@ -35,9 +33,11 @@ export const useTimings = defineStore('timings', () => {
     }
 
     function getTiming(key: string) {
-        // todo: add "includes" here
         return timings.value[key];
     }
+    function getAllTimings() {
+        return Object.entries(timings.value);
+    }
 
-    return { setShown, isShown, startTiming, endTiming, endStartTiming, getTiming }
+    return { setShown, isShown, startTiming, endTiming, endStartTiming, getTiming, getAllTimings }
 })

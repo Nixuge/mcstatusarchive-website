@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, type Ref } from 'vue';
-import { useTimings, timingKeys } from '@/stores/serverviewer/debug/timings';
-const { getTiming, isShown, setShown } = useTimings();
+import { useTimings } from '@/stores/serverviewer/debug/timings';
+const { getTiming, isShown, setShown, getAllTimings } = useTimings();
 
 // watch(getTiming, () => {
     
@@ -16,7 +16,7 @@ onMounted(() => {
     <div v-if="isShown()" id="debugwindowwrap" @click="setShown(false)">
         <div id="debugwindow" @click.stop="">
             <h1>Load times</h1>
-            <h2 v-for="key of timingKeys">"{{ key }}": {{ getTiming(key) }}ms</h2>
+            <h2 v-for="[key, value] of getAllTimings()">"{{ key }}": {{ value }}ms</h2>
         </div>
     </div>
 </template>

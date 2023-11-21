@@ -42,7 +42,7 @@ onMounted(() => {
         <span class="b s">Ping (DE): {{ latestSnapshot.ping }}</span>
         <span class="b">Version Protocol: {{ latestSnapshot.version_protocol }}</span>
 
-        <span class="s">Save time:<br>{{ latestSnapshot.save_time }} ({{ latestSnapshot.save_date.toLocaleString("fr") }})</span>
+        <span class="s">Save time:<br>{{ latestSnapshot.save_time }} ({{ latestSnapshot.save_date == null ? '' : latestSnapshot.save_date.toLocaleString("fr") }})</span>
         <span class="s" ref="motdSpan">MOTD:<br></span>
         <span ref="versionNameSpan">Version name:<br></span>
     </div>
