@@ -13,13 +13,17 @@ import router from '@/router';
 import { onMounted } from 'vue';
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
-const { requestServerSnapshots } = useSnapshots();
+const { requestServerSnapshots, getServerSnapshots } = useSnapshots();
 
 import { useTimings } from '@/stores/serverviewer/debug/timings';
 const { setShown } = useTimings();
 
-const params = router.currentRoute.value.params;
-const ip = params.server as string;
+function getIp() {
+    const params = router.currentRoute.value.params;
+    const data = params.server as string;
+    return data;
+}
+
 
 function exit() {
     resetAll();
@@ -27,7 +31,9 @@ function exit() {
 }
 
 onMounted(async() => {
-    await requestServerSnapshots(ip);
+    // If data already there skip loading it
+    if (getServerSnapshots().length == 0)
+        await requestServerSnapshots(getIp());
 });
 
 </script>
@@ -36,7 +42,7 @@ onMounted(async() => {
     <span id="goback" @click="exit">&lt; back</span>
     <div id="stats">
         <span id="status" @click="setShown(true)">Load timings</span>
-        <h1>Server stats for {{ ip }}</h1>
+        <h1>Server stats for {{ getIp() }}</h1>
         <LatestSnapshot />
         <PlayercountGraph />
         <div id="pickers">

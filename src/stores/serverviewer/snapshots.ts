@@ -19,8 +19,8 @@ const fullKeys = [...mapKeys, "save_date"];
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
     
-    const firstSnapshotRebuild: Ref<ServerSnapshot> = ref(null) as unknown as Ref<ServerSnapshot>;
-    const lastSnapshotPadding: Ref<ServerSnapshot> = ref(null) as unknown as Ref<ServerSnapshot>;
+    const firstSnapshotRebuild: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
+    const lastSnapshotPadding: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
     // A bit laggy but good enough
     const snapshotsDate: Ref<ServerSnapshot[]> = computed(() => {
         if (getServerSnapshots().length == 0)
@@ -126,12 +126,14 @@ export const useSnapshots = defineStore('snapshots', () => {
             } 
             if (remainingKeys.length == 0)
                 break;
-        }
+        }        
         return latestServer as ServerSnapshot;
     }
 
     function reset() {
         snapshots.value = [];
+        // @ts-ignore
+        firstSnapshotRebuild.value = undefined; lastSnapshotPadding.value = undefined;
     }
 
     return { requestServerSnapshots, getServerSnapshots, getServerSnapshotsForDateRange, getLatestServerSnapshotFull, getServerSnapshotsForDateRangeAndCategory, getServerSnapshotsForDateRangePaddings, reset }
