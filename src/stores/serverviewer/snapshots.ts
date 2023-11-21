@@ -48,21 +48,29 @@ export const useSnapshots = defineStore('snapshots', () => {
     // A bit laggy but good enough
     const snapshotsDate: Ref<ServerSnapshot[]> = computed(() => {
         startTiming("grabSnapshotsDateRange");
-        if (getServerSnapshots().length == 0)
+
+        if (getServerSnapshots().length == 0) {
+            endTiming("grabSnapshotsDateRange");
             return [];
+        }
+        
         const range = getStartEndUnix();
-        if (range[0] == 0)
+        const snapshots = getServerSnapshots();
+        const firstSnapshot = snapshots[0];
+        const lastSnapshot = snapshots[snapshots.length - 1];
+        if (range[0] == 0 || (range[0] == firstSnapshot.save_time && range[1] == lastSnapshot.save_time)) {
+            firstSnapshotRebuild.value = firstSnapshot;
+            lastSnapshotPadding.value = lastSnapshot;
+            endTiming("grabSnapshotsDateRange");
             return getServerSnapshots();
+        }
+            
         const rangeDate = getStartEndDate();
         
         // present in the shown graph. It's just there to make the graph render corretly if ending w a gap.
         const _firstSnapshotRebuild: ServerSnapshot = {
             save_time: range[0],
             save_date: rangeDate[0]
-        };
-        const _lastSnapshotPadding: ServerSnapshot = {
-            save_time: range[1],
-            save_date: rangeDate[1]
         };
         const newSnapshotDateList = [];
         for (const snapshot of getServerSnapshots()) {
@@ -82,7 +90,10 @@ export const useSnapshots = defineStore('snapshots', () => {
         }
         // Assign refs at the end to avoid too many unneccesary changes.
         firstSnapshotRebuild.value = _firstSnapshotRebuild;
-        lastSnapshotPadding.value = _lastSnapshotPadding;
+        lastSnapshotPadding.value = {
+            save_time: range[1],
+            save_date: rangeDate[1]
+        };
 
         endTiming("grabSnapshotsDateRange");
         return newSnapshotDateList;
