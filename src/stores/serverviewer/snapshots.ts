@@ -50,7 +50,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         startTiming("grabSnapshotsDateRange");
 
         if (getServerSnapshots().length == 0) {
-            endTiming("grabSnapshotsDateRange");
+            endTiming("grabSnapshotsDateRange", 0, "Skipped");
             return [];
         }
         
@@ -61,7 +61,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         if (range[0] == 0 || (range[0] == firstSnapshot.save_time && range[1] == lastSnapshot.save_time)) {
             firstSnapshotRebuild.value = firstSnapshot;
             lastSnapshotPadding.value = lastSnapshot;
-            endTiming("grabSnapshotsDateRange");
+            endTiming("grabSnapshotsDateRange", 0, "Skipped");
             return getServerSnapshots();
         }
             

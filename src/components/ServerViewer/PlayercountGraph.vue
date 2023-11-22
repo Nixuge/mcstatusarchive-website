@@ -112,7 +112,7 @@ function updateGraph() {
         labels.push(snapshot.save_time * 1000)
         playerCount.push(playerAverage)
     }
-    endTiming("recalculateGraph");
+    endTiming("recalculateGraph", 0, divWidth + "/" + snapshotsLen);
     setGraphValue(labels, playerCount);
 }
 

@@ -5,7 +5,7 @@ import ChangePicker from './ChangePicker.vue'
 import SnapshotsViewer from './SnapshotsViewer.vue'
 import LatestSnapshot from './LatestSnapshot.vue'
 
-import DebugTimings from './debug/Timings.vue'
+import DebugWindow from './debug/Window.vue'
 
 import { resetAll } from '@/ts/utils/reset'
 import { getIp } from '@/ts/utils/route'
@@ -46,7 +46,7 @@ onMounted(async() => {
         </div>
         <SnapshotsViewer />
 
-        <DebugTimings />
+        <DebugWindow />
     </div>
 </template>
 
