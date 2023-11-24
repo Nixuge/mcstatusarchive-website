@@ -92,7 +92,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         // - Keep in that way, have the thing either be a ServerSnapshot[] or a number[] and have the
         //   frontend check whether it's one or the other
         // - Kinda keep it that way, except if the number of elements is under a certain threshold 
-        //   (eg 1000), still convert it to a ServerSnapshot[]
+        //   (eg 10000), still convert it to a ServerSnapshot[]
         // - Fully convert everything every time, even tho it takes up quite some time.
         // 
         // For now going with the 2nd option.
@@ -100,7 +100,7 @@ export const useSnapshots = defineStore('snapshots', () => {
         const range = getStartEndUnix();
         const newListIndexes = snapshotSearcher!.grabSnapshotDateCategory(range[0], range[1], getCurrentKey());
         
-        const converted = newListIndexes.length <= 1000;
+        const converted = newListIndexes.length <= 10000;
         let newList: ServerSnapshot|number[];
         if (converted) {
             const snapshots = getServerSnapshots();
