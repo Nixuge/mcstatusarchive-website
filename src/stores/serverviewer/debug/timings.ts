@@ -10,7 +10,7 @@ export interface Timing {
 
 // For now using this to keep the order right,
 // otherwise it doesn't seem to be ordered.
-export const keyOrder = ["request", "parsing", "initSearch", "grabLatestSnapshotData", "grabSnapshotsDateRange", "recalculateGraph", "graphDisplay", "test", "cloneArr"]
+export const keyOrder = ["request", "parsing", "initSearch", "grabLatestSnapshotData", "grabSnapshotsDateRange", "grabSnapshotsDateCategory", "recalculateGraph", "graphDisplay"]
 
 export const useTimings = defineStore('timings', () => {
     // TODO: MOVE SHOWN ELSEWHERE

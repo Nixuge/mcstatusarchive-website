@@ -114,4 +114,17 @@ export class SnapshotSearcher {
 
         return [lowerBoundKeyIndex, higherBoundKeyIndex];
     }
+
+    public grabSnapshotDateCategory(lowerDate: number, higherDate: number, category: string): number[] {
+        const categoryArr = this.snapshotsMap.get(category)!;
+        if (categoryArr == null)
+            return [-1];
+        
+        // Same as grabDateRangeIndex
+        let lowerBoundKeyIndex = binarySearchBetween(categoryArr, lowerDate);
+        lowerBoundKeyIndex = (categoryArr[lowerBoundKeyIndex] == lowerDate) ? lowerBoundKeyIndex : lowerBoundKeyIndex+1; 
+        const higherBoundKeyIndex = binarySearchNormal(categoryArr, higherDate);
+
+        return categoryArr.slice(lowerBoundKeyIndex, higherBoundKeyIndex+1);
+    }
 }

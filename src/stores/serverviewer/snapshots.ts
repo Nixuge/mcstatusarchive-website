@@ -37,7 +37,7 @@ export const useSnapshots = defineStore('snapshots', () => {
     
     const firstSnapshotRebuild: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
     const lastSnapshotPadding: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
-    // A bit laggy but good enough
+
     const snapshotsDate: Ref<ServerSnapshot[]> = computed(() => {
         startTiming("grabSnapshotsDateRange");
 
@@ -71,21 +71,25 @@ export const useSnapshots = defineStore('snapshots', () => {
         return newSnapshotDateList;
     })
 
-    const snapshotsDateCategory: Ref<ServerSnapshot[]> = computed(() => {
-        // todo: rewrite in SnapshotSearcher
+    const snapshotsDateCategory: Ref<ServerSnapshot[] | number[]> = computed(() => {       
         if (getServerSnapshotsForDateRange().length == 0)
             return [];
-        if (getCurrentKey() == "all")
-            return getServerSnapshotsForDateRange();
 
-        const newList: ServerSnapshot[] = [];
-        for (const snapshot of getServerSnapshotsForDateRange()) {
-            // @ts-ignore
-            const snapshotElement = snapshot[getCurrentKey()];
-            if (snapshotElement != undefined && snapshotElement != null) { // just in case
-                newList.push(snapshotElement);
-            }
+        startTiming("grabSnapshotsDateCategory");
+
+        if (getCurrentKey() == "all") {
+            endTiming("grabSnapshotsDateCategory", 0, "Skipped, ServerSnapshot");
+            return getServerSnapshotsForDateRange();
         }
+        
+        // PROBLEM WITH SNAPSHOTSEARCHER APPROACH:
+        // I only have the indexes of the elements inside of the sublist, not the main list.
+        // Will work on improving that in the next commit 
+
+        const range = getStartEndUnix();
+        const newList = snapshotSearcher!.grabSnapshotDateCategory(range[0], range[1], getCurrentKey());
+
+        endTiming("grabSnapshotsDateCategory", 0, "number");
         return newList;
     })
 
