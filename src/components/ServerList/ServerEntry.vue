@@ -30,28 +30,44 @@ onMounted(() => {
 //   name?: string
 // }>()
 
-const arrow_clear = "https://i.imgur.com/88gxl6q.png";
-const arrow_hovering = "https://i.imgur.com/tyZ4PV3.png";
+const ping = props.data.ping;
+let pingSrc: string;
+if (ping < 50) {
+    pingSrc = "5"
+} else if (ping < 100) {
+    pingSrc = "4"
+} else if (ping < 200) {
+    pingSrc = "3"
+} else if (ping < 300) {
+    pingSrc = "2"
+} else {
+    pingSrc = "1"
+}
 
 const hovering_global = ref(false);
 const hovering_arrow = ref(false);
 
 function showVersionTemporary() {
-    alert("Version name: " + props.data.version_name + "\nVersion protocol: " + props.data.version_protocol)
+    alert(
+    "Ping: " + props.data.ping + 
+    "\n\nVersion name: " + props.data.version_name + 
+    "\nVersion protocol: " + props.data.version_protocol +
+    "\n\n(Server pinged in 1.20.2, protocol version 764)"
+    )
 }
 </script>
 
 <template>
 <div class="server_entry" :class="{'clicked': getSelectedServer() === ip}" @dblclick="$router.push('/server/' + ip)" @click="changeSelectedServer(ip)" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
     <div class="icon_wrapper">
-        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon != 'None' && icon != undefined ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/unknown_server.png`">
-        <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? arrow_hovering : arrow_clear" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
+        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon != 'None' && icon != undefined ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/server/unknown_server.png`">
+        <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? `${API_URL}/static/server/arrow_hover.png` : `${API_URL}/static/server/arrow.png`" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
     </div>
     <div class="server_info">
         <div class="first_line">
             <span class="server_name">{{ name ? name : ip }}</span>
             
-            <img class="ping" width="16" height="12" src="https://i.imgur.com/9eP3jKW.png" @click="showVersionTemporary">
+            <img class="ping" width="20" height="14" :src="`${API_URL}/static/ping/ping_${pingSrc}.png`" @click="showVersionTemporary">
             <span class="player_count" v-if="online_players !== undefined && max_players !== undefined">{{ online_players }}/{{ max_players }}</span>
         </div>
         <div class="server_motd" ref="motdRef"></div>
@@ -59,7 +75,7 @@ function showVersionTemporary() {
   </div>
 </template>
 
-<style>
+<style scoped>
 .motd-span::selection {
     color: #fff;
     background-color: #333;
@@ -110,6 +126,7 @@ function showVersionTemporary() {
 }
 img {
     display: block;
+    image-rendering: pixelated;
 }
 .server_arrow {
     position: absolute;
