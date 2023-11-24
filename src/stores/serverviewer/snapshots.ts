@@ -56,38 +56,23 @@ export const useSnapshots = defineStore('snapshots', () => {
             endTiming("grabSnapshotsDateRange", 0, "Skipped");
             return getServerSnapshots();
         }
-                
+
+        const dateRange = snapshotSearcher!.grabDateRangeIndex(range[0], range[1]);
+        const newSnapshotDateList = getServerSnapshots().slice(dateRange[0], dateRange[1] + 1)
+
         // present in the shown graph. It's just there to make the graph render corretly if ending w a gap.
-        const _firstSnapshotRebuild: ServerSnapshot = {
-            save_time: range[0]
-        };
-        const newSnapshotDateList = [];
-        for (const snapshot of getServerSnapshots()) {
-            // First, if not yet at bottom of range, save data 
-            // to reconstruct the data of the first snapshot
-            if (snapshot.save_time <= range[0]) {
-                noTimeKeys.forEach((key) => {
-                    if (snapshot[key] != null) _firstSnapshotRebuild[key] = snapshot[key];
-                })
-                continue
-            };
-            // Next, if above the top of the range, we know we're done, so break
-            if (snapshot.save_time >= range[1]) 
-                break;
-            // Otherwise just add it normally
-            newSnapshotDateList.push(snapshot);
-        }
-        // Assign refs at the end to avoid too many unneccesary changes.
-        firstSnapshotRebuild.value = _firstSnapshotRebuild;
+        // -1 to not conflict w actual existing values (= add a padding element at the start before all, don't override the first value)
+        firstSnapshotRebuild.value = snapshotSearcher!.grabLatestSnapshotData(range[0]-1);
         lastSnapshotPadding.value = {
             save_time: range[1],
         };
 
-        endTiming("grabSnapshotsDateRange");
+        endTiming("grabSnapshotsDateRange", 0, "v2");
         return newSnapshotDateList;
     })
 
     const snapshotsDateCategory: Ref<ServerSnapshot[]> = computed(() => {
+        // todo: rewrite in SnapshotSearcher
         if (getServerSnapshotsForDateRange().length == 0)
             return [];
         if (getCurrentKey() == "all")

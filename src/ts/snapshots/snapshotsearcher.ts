@@ -81,8 +81,8 @@ export class SnapshotSearcher {
         }
     }
 
-    public grabLatestSnapshotData(lowerDateLimit: number) {
-        const finalSnapshot = {save_time: lowerDateLimit} as ServerSnapshot;
+    public grabLatestSnapshotData(lowerDateLimit: number): ServerSnapshot {
+        const finalSnapshot: ServerSnapshot = {save_time: lowerDateLimit};
         const fullSaveArr = this.snapshotsMap.get("save_time")!;
         for (const key of this.searchKeys) {
             // Get the first element below that changes this value
@@ -98,5 +98,20 @@ export class SnapshotSearcher {
         }
 
         return finalSnapshot;
+    }
+
+    public grabDateRangeIndex(lowerDate: number, higherDate: number): number[] {
+        const fullSaveArr = this.snapshotsMap.get("save_time")!;
+
+        let lowerBoundKeyIndex = binarySearchBetween(fullSaveArr, lowerDate);
+        // Since we grab the element -1 if found in between, this should adapt it so that:
+        // - if the element is in between 2 elements, it does grab the upper one (inside the range)
+        // - if the element is equal to another element directly, it grabs that one directly
+        lowerBoundKeyIndex = (fullSaveArr[lowerBoundKeyIndex] == lowerDate) ? lowerBoundKeyIndex : lowerBoundKeyIndex+1; 
+
+        // No need for that logic for the higher bound (since it's either match or -1 so inside range by default)
+        let higherBoundKeyIndex = binarySearchBetween(fullSaveArr, higherDate);
+
+        return [lowerBoundKeyIndex, higherBoundKeyIndex];
     }
 }
