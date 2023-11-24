@@ -78,18 +78,42 @@ export const useSnapshots = defineStore('snapshots', () => {
         startTiming("grabSnapshotsDateCategory");
 
         if (getCurrentKey() == "all") {
-            endTiming("grabSnapshotsDateCategory", 0, "Skipped, ServerSnapshot");
+            endTiming("grabSnapshotsDateCategory", 0, "Skipped");
             return getServerSnapshotsForDateRange();
         }
-        
-        // PROBLEM WITH SNAPSHOTSEARCHER APPROACH:
-        // I only have the indexes of the elements inside of the sublist, not the main list.
-        // Will work on improving that in the next commit 
+
+        // Dilemma:
+        // the grabSnapshotDateCategory is well enough optimized to not matter performance wise.
+        // However, it returns a list of indexes (contrary to getServerSnapshotsForDateRange()'s list
+        // of object)
+        // To convert that list of indexes to object, the operation takes up quite some time
+        // (~140ms for 60 000 elements), which I'd like to avoid if possible
+        // So do I:
+        // - Keep in that way, have the thing either be a ServerSnapshot[] or a number[] and have the
+        //   frontend check whether it's one or the other
+        // - Kinda keep it that way, except if the number of elements is under a certain threshold 
+        //   (eg 1000), still convert it to a ServerSnapshot[]
+        // - Fully convert everything every time, even tho it takes up quite some time.
+        // 
+        // For now going with the 2nd option.
 
         const range = getStartEndUnix();
-        const newList = snapshotSearcher!.grabSnapshotDateCategory(range[0], range[1], getCurrentKey());
+        const newListIndexes = snapshotSearcher!.grabSnapshotDateCategory(range[0], range[1], getCurrentKey());
+        
+        const converted = newListIndexes.length <= 1000;
+        let newList: ServerSnapshot|number[];
+        if (converted) {
+            const snapshots = getServerSnapshots();
+            newList = [];
+            newListIndexes.forEach((index) => {
+                newList.push(snapshots[index])
+            })
+            endTiming("grabSnapshotsDateCategory", 0, "Converted");
+        } else {
+            newList = newListIndexes;
+            endTiming("grabSnapshotsDateCategory", 0, "RawIndexes");
+        }
 
-        endTiming("grabSnapshotsDateCategory", 0, "number");
         return newList;
     })
 

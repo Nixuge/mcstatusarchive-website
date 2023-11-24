@@ -63,19 +63,23 @@ export class SnapshotSearcher {
     searchKeys = ["players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"];
     validKeys = ["save_time", ...this.searchKeys];
     snapshotsRaw: ServerSnapshot[];
+    snapshotsRawIndexesMap: Map<string, number[]>;
     snapshotsMap: Map<string, number[]>;
 
     constructor(snapshotsRaw: ServerSnapshot[]) {
         this.snapshotsRaw = snapshotsRaw;
         this.snapshotsMap = new Map();
+        this.snapshotsRawIndexesMap = new Map();
         for (const key of this.validKeys) {
             this.snapshotsMap.set(key, []);
+            this.snapshotsRawIndexesMap.set(key, []);
         }
 
-        for (const snapshot of snapshotsRaw) {
+        for (const [index, snapshot] of snapshotsRaw.entries()) {
             for (const key of this.validKeys) {
                 if (snapshot[key] != null) { // save_time never null/undefined
-                    this.snapshotsMap.get(key)?.push(snapshot.save_time);
+                    this.snapshotsMap.get(key)!.push(snapshot.save_time);
+                    this.snapshotsRawIndexesMap.get(key)!.push(index);
                 }
             }
         }
@@ -125,6 +129,7 @@ export class SnapshotSearcher {
         lowerBoundKeyIndex = (categoryArr[lowerBoundKeyIndex] == lowerDate) ? lowerBoundKeyIndex : lowerBoundKeyIndex+1; 
         const higherBoundKeyIndex = binarySearchNormal(categoryArr, higherDate);
 
-        return categoryArr.slice(lowerBoundKeyIndex, higherBoundKeyIndex+1);
+        const categoryRawIndexesArr = this.snapshotsRawIndexesMap.get(category)!;
+        return categoryRawIndexesArr.slice(lowerBoundKeyIndex, higherBoundKeyIndex+1);
     }
 }
