@@ -1,6 +1,5 @@
 export interface ServerSnapshot {
     save_time: number;
-    save_date: Date;
     motd?: string;
     favicon?: string; // not implemented
     ping?: number;

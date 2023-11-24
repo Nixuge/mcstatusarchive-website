@@ -10,7 +10,7 @@ export interface Timing {
 
 // For now using this to keep the order right,
 // otherwise it doesn't seem to be ordered.
-export const keyOrder = ["request", "parsing", "grabLatestSnapshotData", "grabSnapshotsDateRange", "recalculateGraph", "graphDisplay"]
+export const keyOrder = ["request", "parsing", "initSearch", "grabLatestSnapshotData", "grabSnapshotsDateRange", "recalculateGraph", "graphDisplay",]
 
 export const useTimings = defineStore('timings', () => {
     // TODO: MOVE SHOWN ELSEWHERE
@@ -25,6 +25,9 @@ export const useTimings = defineStore('timings', () => {
     }
 
     function startTiming(key: string) {
+        if (!keyOrder.includes(key))
+            console.log("[Timing] " + key + " provided but not included in ordered keys.");
+        
         timings.value.set(key, {start_time: Date.now()});
     }
     // See PlayercountGraph as to why "offset" is here
@@ -38,10 +41,6 @@ export const useTimings = defineStore('timings', () => {
         currentTiming.time = Date.now() - offset - currentTiming.start_time;
         if (comment) 
             currentTiming.comment = comment;
-    }
-    function endStartTiming(endKey: string, startKey: string) {
-        endTiming(endKey);
-        startTiming(startKey);
     }
 
     function getTiming(key: string) {
@@ -65,5 +64,5 @@ export const useTimings = defineStore('timings', () => {
         timings.value.clear();
     }
 
-    return { setShown, isShown, startTiming, endTiming, endStartTiming, getTiming, getAllTimings, reset }
+    return { setShown, isShown, startTiming, endTiming, getTiming, getAllTimings, reset }
 })

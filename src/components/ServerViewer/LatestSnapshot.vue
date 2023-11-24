@@ -4,6 +4,7 @@ import { ref, watch, type Ref, onMounted } from 'vue';
 
 import { parseMotd } from '@/ts/utils/motd';
 import { getIp } from '@/ts/utils/route'
+import { unixToDate } from '@/ts/utils/date';
 
 import { useServerList } from '@/stores/serverlist';
 const { getServerList } = useServerList();
@@ -16,7 +17,6 @@ const versionNameSpan = ref(null) as unknown as Ref<HTMLSpanElement>;
     
 const latestSnapshot = ref({
     save_time: 0,
-    save_date: new Date(),
     motd: "",
     ping: "",
     players_max: "X",
@@ -49,7 +49,7 @@ onMounted(() => {
         <span class="b s">Ping (DE): {{ latestSnapshot.ping }}</span>
         <span class="b">Version Protocol: {{ latestSnapshot.version_protocol }}</span>
 
-        <span class="s">Save time:<br>{{ latestSnapshot.save_time }} ({{ latestSnapshot.save_date == null ? '' : latestSnapshot.save_date.toLocaleString("fr") }})</span>
+        <span class="s">Save time:<br>{{ latestSnapshot.save_time }} ({{ latestSnapshot.save_time == 0 ? '' :  unixToDate(latestSnapshot.save_time).toLocaleString("fr") }})</span>
         <span class="s" ref="motdSpan">MOTD:<br></span>
         <span ref="versionNameSpan">Version name:<br></span>
     </div>

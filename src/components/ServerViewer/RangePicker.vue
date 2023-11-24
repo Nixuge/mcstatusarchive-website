@@ -3,12 +3,14 @@ import { onMounted, ref, watch, type Ref } from 'vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
+import { unixToDate } from '@/ts/utils/date';
+
 const date: Ref<Date[]> = ref([]);
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
 const { getServerSnapshots } = useSnapshots();
 import { useDates } from '@/stores/serverviewer/dates';
-const { setStartEndDates } = useDates();
+const { setStartEndDates, setStartEndUnix } = useDates();
 
 let minDate: Ref<Date> = ref(new Date());
 let maxDate: Ref<Date> = ref(new Date());
@@ -17,10 +19,10 @@ watch(date, () => {
     // if click on "x"
     if (date.value == null) { 
         const snapshots = getServerSnapshots();
-        const firstDate = snapshots[0].save_date;
-        const lastDate = snapshots[snapshots.length - 1].save_date
-        date.value = [firstDate, lastDate]
-        setStartEndDates(firstDate, lastDate);
+        const firstUnix = snapshots[0].save_time;
+        const lastUnix = snapshots[snapshots.length - 1].save_time;
+        date.value = [unixToDate(firstUnix), unixToDate(lastUnix)]
+        setStartEndUnix(firstUnix, lastUnix);
         return;
     } 
     // If setting normal date
@@ -34,8 +36,8 @@ function updateMinMaxDate() {
     if (snapshots.length == 0)
         return;
 
-    minDate.value = snapshots[0].save_date;
-    maxDate.value = snapshots[snapshots.length - 1].save_date;
+    minDate.value = unixToDate(snapshots[0].save_time);
+    maxDate.value = unixToDate(snapshots[snapshots.length - 1].save_time);
     date.value = [minDate.value, maxDate.value]
 }
 

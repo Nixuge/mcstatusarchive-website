@@ -4,43 +4,35 @@ import type { ServerSnapshot } from '@/ts/types/serversnapshot';
 import { API_URL } from '@/constants';
 
 import { useDates } from './dates';
-const { setStartEndDates, getStartEndUnix, getStartEndDate } = useDates()
+const { setStartEndUnix, getStartEndUnix } = useDates()
 
 import { useChangeKey } from './changekey';
 const { getCurrentKey } = useChangeKey()
 
 import { useTimings } from './debug/timings';
-const { startTiming, endTiming, endStartTiming } = useTimings()
+import { SnapshotSearcher } from '@/ts/snapshots/snapshotsearcher';
+const { startTiming, endTiming } = useTimings()
 
 const noTimeKeys = ["players_on", "players_max", "ping", "players_sample", "version_protocol", "version_name", "motd"];
 const mapKeys = ["save_time", ...noTimeKeys];
-const fullKeys = [...mapKeys, "save_date"];
 
 export const useSnapshots = defineStore('snapshots', () => {
     const snapshots: Ref<ServerSnapshot[]> = ref([]);
+    let snapshotSearcher: SnapshotSearcher | undefined = undefined;
 
     const latestSnapshot = computed(() => {
         startTiming("grabLatestSnapshotData");
-        const latestServer: { [key: string]: any } = {};
-        const remainingKeys = [...fullKeys];
 
-        // Note: For some reason I cannot possibly explain,
-        // this does NOT grab the version_name, even tho it's technically
-        // in snapshots.value. I don't know how to fix it, adding random garbage at the start
-        // seems to make it show up, but that's not really a "fix".
-        // Really looks like a Vue bug.
-        for (const snapshot of [...getServerSnapshots()].reverse()) {
-            for (const key of remainingKeys) {
-                if (snapshot[key]) {
-                    latestServer[key] = snapshot[key]
-                    remainingKeys.splice(remainingKeys.indexOf(key), 1)
-                }
-            } 
-            if (remainingKeys.length == 0)
-                break;
-        }        
-        endTiming("grabLatestSnapshotData")
-        return latestServer as ServerSnapshot;
+        const snapshots = getServerSnapshots();
+        if (snapshots == undefined || snapshots.length == 0) {
+            endTiming("grabLatestSnapshotData", 0, "skipped");
+            return {save_time: 0};
+        }
+
+        const latestServer = snapshotSearcher!.grabLatestSnapshotData(snapshots[snapshots.length - 1].save_time);
+        
+        endTiming("grabLatestSnapshotData", 0, "v2")
+        return latestServer;
     })
     
     const firstSnapshotRebuild: Ref<ServerSnapshot> = ref() as Ref<ServerSnapshot>;
@@ -64,13 +56,10 @@ export const useSnapshots = defineStore('snapshots', () => {
             endTiming("grabSnapshotsDateRange", 0, "Skipped");
             return getServerSnapshots();
         }
-            
-        const rangeDate = getStartEndDate();
-        
+                
         // present in the shown graph. It's just there to make the graph render corretly if ending w a gap.
         const _firstSnapshotRebuild: ServerSnapshot = {
-            save_time: range[0],
-            save_date: rangeDate[0]
+            save_time: range[0]
         };
         const newSnapshotDateList = [];
         for (const snapshot of getServerSnapshots()) {
@@ -92,7 +81,6 @@ export const useSnapshots = defineStore('snapshots', () => {
         firstSnapshotRebuild.value = _firstSnapshotRebuild;
         lastSnapshotPadding.value = {
             save_time: range[1],
-            save_date: rangeDate[1]
         };
 
         endTiming("grabSnapshotsDateRange");
@@ -118,23 +106,22 @@ export const useSnapshots = defineStore('snapshots', () => {
 
     async function requestServerSnapshots(ip: string) {
         startTiming("request");
-
         const rawData: any[][] = await fetch(`${API_URL}/get_all_server_data/${ip}`)
             .then(data => data.json());
-        
-        endStartTiming("request", "parsing");
+        endTiming("request")
 
+        startTiming("parsing");
         let _snapshots = rawData.map(sublist => {
             return Object.fromEntries(mapKeys.map((key, index) => [key, sublist[index]]));
         }) as ServerSnapshot[];
-
-        _snapshots.forEach(snapshot => {
-            snapshot.save_date = new Date(snapshot.save_time * 1000);
-        })
-        setStartEndDates(_snapshots[0].save_date, _snapshots[_snapshots.length - 1].save_date);
-        
-        snapshots.value = _snapshots;
+        setStartEndUnix(_snapshots[0].save_time, _snapshots[_snapshots.length - 1].save_time);
         endTiming("parsing");
+
+        startTiming("initSearch");
+        snapshotSearcher = new SnapshotSearcher(_snapshots);
+        endTiming("initSearch");
+
+        snapshots.value = _snapshots;
     }
 
     function getServerSnapshots() {
