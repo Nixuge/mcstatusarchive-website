@@ -20,6 +20,7 @@ const motd_formatted = parseMotd(props.data.motd)
 
 onMounted(() => {
     motdRef.value.innerHTML = motd_formatted;
+    props.data.motd_text = motdRef.value.textContent!;
 });
 // const props = defineProps<{
 //   ip: string,

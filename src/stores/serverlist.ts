@@ -7,6 +7,7 @@ import { useSearcher } from './searcher';
 export interface Server {
     ip: string;
     motd: string;
+    motd_text?: string; // To be set from ServerEntry from textContent
     favicon: string;
     ping: number;
     players_max: number;
@@ -39,7 +40,10 @@ export const useServerList = defineStore('serverList', () => {
     function getShownServerList() {
         const allShown = []
         for (const server of serverList.value) {
-            if (server.ip.toLowerCase().includes(getSearchText())) {
+            const search = getSearchText();
+            if ((server.ip.toLowerCase().includes(search)) ||
+                (server.motd_text && server.motd_text.toLowerCase().includes(search))
+            ) {
                 allShown.push(server);
             }
         }
