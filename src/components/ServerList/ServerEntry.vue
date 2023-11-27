@@ -75,8 +75,14 @@ function showVersionTemporary() {
   </div>
 </template>
 
-<style scoped>
-.motd-span::selection {
+<style>
+/* MOTD select 
+Quite dirty but the lib uses styles, not classes,
+and it's already compiled so can't really change it
+*/
+.server_motd > span::selection,
+.server_motd > span > span::selection,
+.server_motd > span > span > span::selection {
     color: #fff;
     background-color: #333;
 }
