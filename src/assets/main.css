@@ -1,8 +1,21 @@
 @import './base.css';
 
-@import url(https://fontlibrary.org//face/minecraftia);
+/* 
+ Very big thanks to:
+ https://fontstruct.com/fontstructions/show/1655227/minecraftio
+ https://fontstruct.com/fontstructors/1664236/bwm
+ the only Minecraft font with proper small capital letters & accents
+*/
+
+@font-face {
+  font-family: 'minecraftio';
+      src: url('./minecraftio.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+    }
+
 * {
-  font-family: MinecraftiaRegular;
+  font-family: minecraftio;
 }
 
 
