@@ -23,7 +23,6 @@ onMounted(() => {
 <template>
     <h3>Play multiplayer ({{ getShownServerList().length }} servers available)</h3>
     <div class="server_viewer_wrapper">
-        <span>TEMPSEARCH </span><input ref="searchInput" @input="setSearch">
         <div class="server_viewer">
             <ServerEntry  v-for="server in getShownServerList()" :key="server.ip" :data="server" />
         </div>
@@ -32,9 +31,31 @@ onMounted(() => {
             <img id="scanning_gif" src="https://i.imgur.com/cfYkOU1.gif">
         </div>
     </div>
+    <div class="footer">
+        <input ref="searchInput" @input="setSearch">
+    </div>
 </template>
 
 <style scoped>
+.footer {
+    text-align: center;
+    height: 9%;
+    overflow: hidden;
+}
+.footer input {
+    margin-top: 5px;
+    width: 70%;
+    background: transparent;
+    max-width: 1280px;
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #6f6f6f;
+    padding: 5px;
+}
+.footer input:focus-visible {
+    /* outline: 1px solid #7b85bd; */
+    outline: 0px solid #6f6f6f;
+}
 h3 {
     text-align: center;
     padding-bottom: 5px;
