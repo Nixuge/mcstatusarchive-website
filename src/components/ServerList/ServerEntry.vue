@@ -61,7 +61,7 @@ function showVersionTemporary() {
 <template>
 <div class="server_entry" :class="{'clicked': getSelectedServer() === ip}" @dblclick="$router.push('/server/' + ip)" @click="changeSelectedServer(ip)" @mouseenter="hovering_global = true" @mouseleave="hovering_global = false">
     <div class="icon_wrapper">
-        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon != 'None' && icon != undefined ? `${API_URL}/static/favicons/${icon}.png` : `${API_URL}/static/server/unknown_server.png`">
+        <img class="server_icon" :class="{'hovering': hovering_global}" :src="icon != 'None' && icon != undefined ? `${API_URL}/static/favicons/${icon[0]}/${icon}.png` : `${API_URL}/static/server/unknown_server.png`">
         <img v-if="hovering_global" class="server_arrow" :src="hovering_arrow ? `${API_URL}/static/server/arrow_hover.png` : `${API_URL}/static/server/arrow.png`" @click.stop="$router.push('/server/' + ip)" @mouseenter="hovering_arrow = true" @mouseleave="hovering_arrow = false">
     </div>
     <div class="server_info">
