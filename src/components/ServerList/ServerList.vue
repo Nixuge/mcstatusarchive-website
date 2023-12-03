@@ -2,6 +2,7 @@
 import { onMounted, ref, type Ref } from 'vue';
 import ServerEntry from './ServerEntry.vue';
 import NumberInput from '@/components/utils/NumberInput.vue';
+import CustomCheckbox from '@/components/utils/CustomCheckbox.vue';
 
 import { useSearcher } from '@/stores/searcher';
 const { setSearchText, searchInputMount, setMaxPing, setMinPlayerCount, setOrder, setOrderDescending } = useSearcher();
@@ -10,9 +11,6 @@ function setSearch(payload: any) {
 }
 function setOrderWrap(payload: any) {
     setOrder(payload.target.value);
-}
-function setOrderDescendingWrap(payload: any) {    
-    setOrderDescending(payload.target.checked);
 }
 
 import { useServerList } from '@/stores/serverlist';
@@ -46,7 +44,7 @@ onMounted(() => {
             <option value="ping">Ping</option>
             <option value="playercount">Playercount</option>
         </select>
-        <input type="checkbox" @change="setOrderDescendingWrap">
+        <CustomCheckbox :onChange="setOrderDescending"/>
     </div>
 </template>
 
@@ -61,16 +59,20 @@ onMounted(() => {
     overflow: hidden;
     white-space: nowrap;
 }
+.selector,
 #searchText {
     margin: 5px;
-    width: 60%;
     max-width: 1100px;
     background-color: #000;
     color: #fff;
     border: 1px solid #6f6f6f;
     padding: 5px;
 }
-.footer input:focus-visible {
+
+#searchText {
+    width: 50%;
+}
+#searchText:focus-visible {
     /* outline: 1px solid #7b85bd; */
     outline: 0px solid #6f6f6f;
 }
