@@ -2,8 +2,9 @@ import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useSearcher = defineStore('searcher', () => {
-    // const searchInput = ref(null) as unknown as Ref<HTMLInputElement>;
     const searchText = ref("");
+    const order = ref("alphabetical");
+    const orderDescending = ref(true);
     const maxPing = ref(0);
     const minPlayerCount = ref(0);
 
@@ -20,6 +21,20 @@ export const useSearcher = defineStore('searcher', () => {
         return maxPing.value;
     }
 
+    function setOrder(newOrder: string) {
+        order.value = newOrder;
+    }
+    function getOrder() {
+        return order.value;
+    }
+
+    function setOrderDescending(newVal: boolean) {
+        orderDescending.value = newVal;
+    }
+    function getOrderDescending() {
+        return orderDescending.value;
+    }
+
     function setMinPlayerCount(newMinPlayerCount: number) {
         minPlayerCount.value = newMinPlayerCount;
     }
@@ -34,5 +49,5 @@ export const useSearcher = defineStore('searcher', () => {
         return searchText.value;
     }
 
-    return { setSearchText, getSearchText, setMaxPing, getMaxPing, setMinPlayerCount, getMinPlayerCount, searchInputMount }
+    return { setSearchText, getSearchText, setMaxPing, getMaxPing, setMinPlayerCount, getMinPlayerCount, setOrder, getOrder, setOrderDescending, getOrderDescending, searchInputMount }
 })

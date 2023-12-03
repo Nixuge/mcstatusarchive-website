@@ -106,6 +106,7 @@ const fontSize = props.fontSize ? props.fontSize : "1rem";
     background-color: #000;
     color: #fff;
     border: 1px solid #6f6f6f;
+    margin-left: 5px;
 }
 .search {
     text-align: center;

@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref, type ComputedRef, type Ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { API_URL } from '@/constants';
 import { useSearcher } from './searcher';
@@ -36,8 +36,8 @@ export const useServerList = defineStore('serverList', () => {
           
     }
     
-    const { getSearchText, getMaxPing, getMinPlayerCount } = useSearcher();
-    function getShownServerList() {
+    const { getSearchText, getMaxPing, getMinPlayerCount, getOrder, getOrderDescending } = useSearcher();
+    const shownServerList: ComputedRef<Server[]> = computed(() => {
         const allShown = [];
         const minPlayers = getMinPlayerCount();
         const maxPing = getMaxPing();
@@ -50,6 +50,33 @@ export const useServerList = defineStore('serverList', () => {
             }
         }
         return allShown;
+    });
+
+    const shownServerListOrdered: ComputedRef<Server[]> = computed(() => {
+        const servers = [...shownServerList.value];
+        const order = getOrder();
+        console.log(order);
+        
+        switch (order) {
+            case "alphabetical":
+                servers.sort(function (a, b) {return a.ip.toLowerCase().localeCompare(b.ip.toLowerCase());});
+                break;
+            case "ping":
+                servers.sort((a, b) => a.ping - b.ping);
+                break;
+            case "playercount":
+                servers.sort((a, b) => a.players_on - b.players_on);
+                break;
+            default:
+                break;
+        }
+        if (getOrderDescending())
+            servers.reverse()
+        return servers;
+    });
+
+    function getShownServerList() {
+        return shownServerListOrdered.value; // assume we always want the ordered list anyways
     }
 
     function getServerList() {

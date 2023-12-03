@@ -4,9 +4,15 @@ import ServerEntry from './ServerEntry.vue';
 import NumberInput from '@/components/utils/NumberInput.vue';
 
 import { useSearcher } from '@/stores/searcher';
-const { setSearchText, searchInputMount, setMaxPing, setMinPlayerCount } = useSearcher();
+const { setSearchText, searchInputMount, setMaxPing, setMinPlayerCount, setOrder, setOrderDescending } = useSearcher();
 function setSearch(payload: any) {
     setSearchText(payload.target.value);
+}
+function setOrderWrap(payload: any) {
+    setOrder(payload.target.value);
+}
+function setOrderDescendingWrap(payload: any) {    
+    setOrderDescending(payload.target.checked);
 }
 
 import { useServerList } from '@/stores/serverlist';
@@ -18,7 +24,6 @@ onMounted(() => {
     requestServerList();
     searchInputMount(searchInput.value);
 })
-
 </script>
 
 <template>
@@ -34,8 +39,14 @@ onMounted(() => {
     </div>
     <div class="footer">
         <NumberInput placeholder="Max ping" :step="10" :onChange="setMaxPing" :max="3000" fontSize="0.6rem"/>
-        <input id="searchText" ref="searchInput" @input="setSearch">
         <NumberInput placeholder="Min players" :step="10" :onChange="setMinPlayerCount" :max="10000" fontSize="0.42rem"/>
+        <input id="searchText" ref="searchInput" @input="setSearch">
+        <select class="selector" @change="setOrderWrap">
+            <option value="alphabetical">Alphabetical</option>
+            <option value="ping">Ping</option>
+            <option value="playercount">Playercount</option>
+        </select>
+        <input type="checkbox" @change="setOrderDescendingWrap">
     </div>
 </template>
 
