@@ -4,7 +4,7 @@ import ServerEntry from './ServerEntry.vue';
 import NumberInput from '@/components/utils/NumberInput.vue';
 
 import { useSearcher } from '@/stores/searcher';
-const { setSearchText, searchInputMount } = useSearcher();
+const { setSearchText, searchInputMount, setMaxPing, setMinPlayerCount } = useSearcher();
 function setSearch(payload: any) {
     setSearchText(payload.target.value);
 }
@@ -33,9 +33,9 @@ onMounted(() => {
         </div>
     </div>
     <div class="footer">
-        <NumberInput placeholder="Max ping" :step="10" :onChange="TOCHANGE" :max="3000" fontSize="0.6rem"/>
+        <NumberInput placeholder="Max ping" :step="10" :onChange="setMaxPing" :max="3000" fontSize="0.6rem"/>
         <input id="searchText" ref="searchInput" @input="setSearch">
-        <NumberInput placeholder="Min players" :step="10" :onChange="TOCHANGE" :max="10000" fontSize="0.42rem"/>
+        <NumberInput placeholder="Min players" :step="10" :onChange="setMinPlayerCount" :max="10000" fontSize="0.42rem"/>
     </div>
 </template>
 
