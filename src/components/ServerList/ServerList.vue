@@ -38,12 +38,16 @@ onMounted(() => {
 
 <style scoped>
 .footer {
+    /* "Overlay" on top of the main .server_viewer_wrapper */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: url("https://i.imgur.com/BuhwdPB.png"); /* to also replace in main.css */
     text-align: center;
-    height: 9%;
     overflow: hidden;
 }
 .footer input {
-    margin-top: 5px;
+    margin: 5px;
     width: 70%;
     background: transparent;
     max-width: 1280px;
@@ -73,7 +77,7 @@ h3 {
 }
 
 .server_viewer_wrapper {
-    height: 90%;
+    height: 100%;
     overflow: auto;
     /* shadows at top & botomp like in normal mc*/
     box-shadow: inset 0px 10px 5px -8px black, inset 0px -10px 5px -8px black;
