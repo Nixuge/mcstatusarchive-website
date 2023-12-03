@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 import { API_URL } from '@/constants';
 import { useSearcher } from './searcher';
@@ -37,34 +37,19 @@ export const useServerList = defineStore('serverList', () => {
     }
     
     const { getSearchText, getMaxPing, getMinPlayerCount } = useSearcher();
-    const textSearchResults = computed(() => {
-        const allTextSearchResults = [];
-        const search = getSearchText();
-        for (const server of serverList.value) {
-            if ((server.ip.toLowerCase().includes(search)) ||
-                (server.motd_text && server.motd_text.toLowerCase().includes(search))
-            ) {
-                allTextSearchResults.push(server);
-            }
-        }
-        return allTextSearchResults;
-    })
-
-    const allShown: ComputedRef<Server[]> = computed(() => {
-        const allTagsSearchResults: Server[] = []
-        const maxPing = getMaxPing();
-        const minPlayers = getMinPlayerCount();
-        for (const server of textSearchResults.value) {
-            if ((!minPlayers || server.players_on > minPlayers) &&
-                (!maxPing || server.ping < maxPing)) {
-                    allTagsSearchResults.push(server)
-            }
-        }
-        return allTagsSearchResults;
-    })
-
     function getShownServerList() {
-        return allShown.value;
+        const allShown = [];
+        const minPlayers = getMinPlayerCount();
+        const maxPing = getMaxPing();
+        for (const server of serverList.value) {
+            const search = getSearchText();
+            if ((server.ip.toLowerCase().includes(search) || server.motd_text && server.motd_text.toLowerCase().includes(search)) &&
+            (!minPlayers || server.players_on > minPlayers) && (!maxPing || server.ping < maxPing)
+            ) {
+                allShown.push(server);
+            }
+        }
+        return allShown;
     }
 
     function getServerList() {
