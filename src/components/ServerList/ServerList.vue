@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, type Ref } from 'vue';
 import ServerEntry from './ServerEntry.vue';
+import NumberInput from '@/components/utils/NumberInput.vue';
 
 import { useSearcher } from '@/stores/searcher';
 const { setSearchText, searchInputMount } = useSearcher();
@@ -32,25 +33,27 @@ onMounted(() => {
         </div>
     </div>
     <div class="footer">
-        <input ref="searchInput" @input="setSearch">
+        <NumberInput placeholder="Max ping" :step="10" :onChange="TOCHANGE" :max="3000" fontSize="0.6rem"/>
+        <input id="searchText" ref="searchInput" @input="setSearch">
+        <NumberInput placeholder="Min players" :step="10" :onChange="TOCHANGE" :max="10000" fontSize="0.42rem"/>
     </div>
 </template>
 
 <style scoped>
 .footer {
-    /* "Overlay" on top of the main .server_viewer_wrapper */
+    /* "Overlay" on top of the main .server_viewer_wrapper (which has a height of 90%) */
     position: fixed;
     bottom: 0;
     width: 100%;
     background: url("https://i.imgur.com/BuhwdPB.png"); /* to also replace in main.css */
     text-align: center;
     overflow: hidden;
+    white-space: nowrap;
 }
-.footer input {
+#searchText {
     margin: 5px;
-    width: 70%;
-    background: transparent;
-    max-width: 1280px;
+    width: 60%;
+    max-width: 1100px;
     background-color: #000;
     color: #fff;
     border: 1px solid #6f6f6f;
@@ -77,7 +80,7 @@ h3 {
 }
 
 .server_viewer_wrapper {
-    height: 100%;
+    height: 90%; /* Not 100% to avoid a weird slight scrolling otherwise */
     overflow: auto;
     /* shadows at top & botomp like in normal mc*/
     box-shadow: inset 0px 10px 5px -8px black, inset 0px -10px 5px -8px black;
