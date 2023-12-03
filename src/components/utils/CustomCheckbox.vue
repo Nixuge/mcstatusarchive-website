@@ -5,42 +5,64 @@ const props = defineProps<{
     onChange: (value: boolean) => void
 }>();
 
-const isChecked = ref(false);
+const isCheckedRef = ref(false);
 
-function onChangeLocal(event: any) {
+function onCheckboxClick(event: any) {
     const checked = event.target.checked;
-    isChecked.value = checked;
+    // isChecked = checked;
+    isCheckedRef.value = checked;
     props.onChange(checked);
+}
+function toggle() {
+    // isChecked = !isChecked;
+    isCheckedRef.value = !isCheckedRef.value;
+    props.onChange(isCheckedRef.value);
 }
 
 // checkmarks in mc font: ✓✔✅
+// Edit: ends up being over engineered for a div you can click on :/
 </script>
 
 <template>
-    <label class="container">{{ isChecked ? "Ascending" : "Descending" }}
-        <input v-bind:checked="isChecked" type="checkbox" @change="onChangeLocal">
-        <span class="checkmark"></span>
+    <label class="container" @click="toggle">{{ isCheckedRef ? "Descending" : "Ascending" }}
+        <input type="checkbox" @change="onCheckboxClick" :checked="true">
     </label>
 </template>
 
 <style scoped>
-input {
-    -webkit-appearance: initial;
-    appearance: initial;
-    width: 31px;
-    height: 31px;
+.container {
     background: #000;
     position: relative;
     border: 1px solid #6f6f6f;
+    padding: 3px;
+    padding-bottom: 4px;
+    cursor: pointer;
+}
+input {
+    cursor: pointer;
+}
+input {
+    -webkit-appearance: initial;
+    appearance: initial;
+    width: 10px;
+    height: 30px;
+    /* background: #000; */
+    position: relative;
+    /* border: 1px solid #6f6f6f; */
     transform: translateY(8px);
 }
-input:checked:after {
-    content: "✔";
+input:not(:checked) {
+    width: 22px;
+}
+input:after {
     color: #fff;
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
-
+    content: "";
+}
+input:checked:after {
+    content: "✔";
 }
 </style>
