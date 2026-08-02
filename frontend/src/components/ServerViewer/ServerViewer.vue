@@ -4,6 +4,7 @@ import RangePicker from './RangePicker.vue'
 import ChangePicker from './ChangePicker.vue'
 import SnapshotsViewer from './SnapshotsViewer.vue'
 import LatestSnapshot from './LatestSnapshot.vue'
+import HoveredSnapshotInfo from './HoveredSnapshotInfo.vue'
 
 import DebugWindow from './debug/Window.vue'
 
@@ -45,6 +46,7 @@ onMounted(async() => {
             <ChangePicker />
         </div>
         <SnapshotsViewer />
+        <HoveredSnapshotInfo />
 
         <DebugWindow />
     </div>

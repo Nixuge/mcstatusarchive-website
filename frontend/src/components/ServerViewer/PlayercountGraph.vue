@@ -9,7 +9,7 @@ chartjs.register(...registerables);
 import 'chartjs-adapter-luxon'
 
 import { useSnapshots } from '@/stores/serverviewer/snapshots';
-const { getServerSnapshotsForDateRange, getSnapshotSearcher } = useSnapshots();
+const { getServerSnapshotsForDateRange, getSnapshotSearcher, setHoveredSnapshot } = useSnapshots();
 
 import { useTimings } from '@/stores/serverviewer/debug/timings';
 const { startTiming, endTiming } = useTimings();
@@ -24,18 +24,40 @@ const data: Ref<any> = ref({
     }]
 })
 
+let currentGraphLabels: number[] = [];
+
 const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        // legend: false // Hide legend
+        tooltip: {
+            enabled: true,
+        }
     },
     scales: {
         x: {
-            display: false, // Hide X axis labels
+            display: false,
             type: 'time'
         }
-    }   
+    },
+    onHover: (event: any, elements: any[]) => {
+        if (elements && elements.length > 0) {
+            const index = elements[0].index;
+            if (index >= 0 && index < currentGraphLabels.length) {
+                const labelTs = currentGraphLabels[index];
+                if (labelTs && !isNaN(labelTs)) {
+                    const unixSec = Math.floor(labelTs / 1000);
+                    const searcher = getSnapshotSearcher();
+                    if (searcher) {
+                        const snap = searcher.grabLatestSnapshotData(unixSec);
+                        setHoveredSnapshot(snap);
+                        return;
+                    }
+                }
+            }
+        }
+        setHoveredSnapshot(null);
+    }
 }
 
 const playerStatsDiv = ref(null) as unknown as Ref<HTMLDivElement>;
@@ -108,6 +130,7 @@ function updateGraph() {
         labels.push(ts * 1000);
         playerCount.push(playerAverage);
     }
+    currentGraphLabels = labels;
     endTiming("recalculateGraph", 0, divWidth + "/" + snapshotsLen);
     setGraphValue(labels, playerCount);
 }

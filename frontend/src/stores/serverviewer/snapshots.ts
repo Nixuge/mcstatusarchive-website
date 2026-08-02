@@ -16,6 +16,7 @@ const { startTiming, endTiming } = useTimings()
 export const useSnapshots = defineStore('snapshots', () => {
     const rawDataResponse: Ref<ServerDataResponse | null> = ref(null);
     const snapshotSearcher: Ref<SnapshotSearcher | undefined> = shallowRef(undefined);
+    const hoveredSnapshot: Ref<ServerSnapshot | null> = ref(null);
 
     const latestSnapshot = computed(() => {
         startTiming("grabLatestSnapshotData");
@@ -146,9 +147,18 @@ export const useSnapshots = defineStore('snapshots', () => {
         return snapshotSearcher.value;
     }
 
+    function setHoveredSnapshot(snapshot: ServerSnapshot | null) {
+        hoveredSnapshot.value = snapshot;
+    }
+
+    function getHoveredSnapshot() {
+        return hoveredSnapshot.value;
+    }
+
     function reset() {
         rawDataResponse.value = null;
         snapshotSearcher.value = undefined;
+        hoveredSnapshot.value = null;
         // @ts-ignore
         firstSnapshotRebuild.value = undefined; lastSnapshotPadding.value = undefined;
     }
@@ -161,6 +171,9 @@ export const useSnapshots = defineStore('snapshots', () => {
         getServerSnapshotsForDateRangeAndCategory, 
         getServerSnapshotsForDateRangePaddings,
         getSnapshotSearcher,
+        hoveredSnapshot,
+        setHoveredSnapshot,
+        getHoveredSnapshot,
         reset 
     }
 })
