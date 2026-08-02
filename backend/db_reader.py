@@ -222,9 +222,9 @@ class DbReader:
             return self._latest_cache
 
     def get_latest_servers_data(self) -> Dict[str, Dict[str, Any]]:
-        """Return latest server data, refreshing from DB if cache is empty or stale (>60s)."""
+        """Return latest server data, refreshing from DB if cache is empty or stale (>1h)."""
         with self._lock:
-            stale = (time.time() - self._last_cache_update) > 60
+            stale = (time.time() - self._last_cache_update) > 3600
             has_data = len(self._latest_cache) > 0
 
         if not has_data or stale:
