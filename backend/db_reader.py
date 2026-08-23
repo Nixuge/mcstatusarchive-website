@@ -1,5 +1,5 @@
 """
-Database reader module for the new mcstatusarchive columnar format (v2).
+Database reader module for the new mcstatusarchive columnar format (v4).
 Transmits the native event-sourced columnar structure over the API.
 """
 
@@ -8,6 +8,8 @@ import logging
 import sqlite3
 import threading
 import time
+import os
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger("backend.db_reader")
@@ -16,28 +18,39 @@ logger = logging.getLogger("backend.db_reader")
 SERVER_TYPE_JAVA = 0
 SERVER_TYPE_BEDROCK = 1
 
-METRIC_FIELDS = {
+JAVA_METRIC_FIELDS = {
+    0: "players_on",
+    1: "players_max",
+    2: "ping",
+    3: "version_protocol",
+    4: "enforces_secure_chat",
+    5: "forge_fml_network_version",
+    6: "forge_truncated",
+}
+
+JAVA_TEXT_FIELDS = {
+    0: "motd",
+    1: "version_name",
+    2: "players_sample",
+    3: "favicon",
+    4: "forge_channels",
+    5: "forge_mods",
+}
+
+BEDROCK_METRIC_FIELDS = {
     0: "players_on",
     1: "players_max",
     2: "ping",
     3: "version_protocol",
 }
 
-TEXT_FIELDS_JAVA = {
+BEDROCK_TEXT_FIELDS = {
     0: "motd",
     1: "version_name",
-    2: "players_sample",
-    3: "favicon",
+    2: "version_brand",
+    3: "gamemode",
+    4: "map",
 }
-
-TEXT_FIELDS_BEDROCK = {
-    0: "motd",
-    1: "version_name",
-    4: "version_brand",
-    5: "gamemode",
-    6: "map",
-}
-
 
 def format_favicon(content: Any) -> Optional[str]:
     """Format raw favicon content into a displayable string/data-uri."""
@@ -59,9 +72,65 @@ def format_favicon(content: Any) -> Optional[str]:
     return str(content)
 
 
+def resolve_players_sample(content: Any, cursor: sqlite3.Cursor) -> str:
+    """Resolve comma-separated player IDs from text changes to a JSON list of name/UUID dicts."""
+    if content is None:
+        return "[]"
+    if isinstance(content, bytes):
+        try:
+            content_str = content.decode("utf-8")
+        except UnicodeDecodeError:
+            content_str = ""
+    else:
+        content_str = str(content)
+
+    if content_str == "-1" or not content_str:
+        return "[]"
+
+    # Split the comma-separated IDs
+    try:
+        player_ids = [int(x.strip()) for x in content_str.split(",") if x.strip()]
+    except ValueError:
+        # If it's already a JSON list or something else, return as is
+        return content_str
+
+    if not player_ids:
+        return "[]"
+
+    # Query the players table for these IDs
+    placeholders = ",".join("?" for _ in player_ids)
+    try:
+        cursor.execute(
+            f"SELECT name, uuid FROM players WHERE id IN ({placeholders});",
+            player_ids
+        )
+        players = [{"name": r[0], "id": r[1]} for r in cursor.fetchall()]
+        return json.dumps(players, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Error resolving players sample: {e}")
+        return "[]"
+
+
+def get_db_server_type(db_path: str) -> Optional[str]:
+    """Helper to read database server type from db_meta."""
+    if not os.path.exists(db_path):
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM db_meta WHERE key = 'server_type';")
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return row[0]  # "java" or "bedrock"
+    except Exception as e:
+        logger.error(f"Error checking server_type of database {db_path}: {e}")
+    return None
+
+
 class DbReader:
-    def __init__(self, db_path: str):
-        self.db_path = db_path
+    def __init__(self, db_paths: Dict[str, str]):
+        self.db_paths = db_paths
         self._lock = threading.Lock()
 
         # Cache for latest server status: { identifier (ip or table_name): dict }
@@ -69,144 +138,202 @@ class DbReader:
         self._server_lookup: Dict[str, Dict[str, Any]] = {}  # ip / table_name -> server row
         self._last_cache_update: float = 0.0
 
-        logger.info(f"Initialized DbReader for path: {db_path}")
+        # Classify each database
+        self.db_conns_paths: Dict[str, str] = {}
+        for key, path in db_paths.items():
+            if not path or not os.path.exists(path):
+                continue
+            db_type = get_db_server_type(path)
+            if db_type in ("java", "bedrock"):
+                self.db_conns_paths[db_type] = path
+            else:
+                if key in ("java", "bedrock"):
+                    self.db_conns_paths[key] = path
+                elif key == "single":
+                    # Assume java for single path fallback if server_type couldn't be read
+                    self.db_conns_paths["java"] = path
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Create a read-only SQLite connection."""
-        uri = f"file:{self.db_path}?mode=ro"
+        logger.info(f"Initialized DbReader for paths: {db_paths}. Resolved types: {self.db_conns_paths}")
+
+    def _get_connection(self, server_type: str) -> sqlite3.Connection:
+        """Create a read-only SQLite connection for a specific server type database."""
+        path = self.db_conns_paths.get(server_type)
+        if not path:
+            raise ValueError(f"No database configured/found for server type: {server_type}")
+        uri = f"file:{path}?mode=ro"
         conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
         return conn
 
     def refresh_server_lookup(self) -> None:
-        """Load all servers into lookup cache."""
-        try:
-            conn = self._get_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, table_name, ip, port, type FROM servers;")
-            rows = cursor.fetchall()
-            conn.close()
+        """Load all servers into lookup cache from both databases."""
+        new_lookup = {}
+        for db_type in ["java", "bedrock"]:
+            if db_type not in self.db_conns_paths:
+                continue
+            try:
+                conn = self._get_connection(db_type)
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, name, ip, port FROM servers;")
+                rows = cursor.fetchall()
+                conn.close()
 
-            new_lookup = {}
-            for row in rows:
-                server_info = {
-                    "id": row["id"],
-                    "table_name": row["table_name"],
-                    "ip": row["ip"],
-                    "port": row["port"],
-                    "type": row["type"],
-                }
-                new_lookup[str(row["id"])] = server_info
-                new_lookup[row["table_name"]] = server_info
-                new_lookup[row["ip"]] = server_info
+                type_code = 0 if db_type == "java" else 1
 
-            with self._lock:
-                self._server_lookup = new_lookup
-            logger.info(f"Loaded {len(rows)} servers into lookup cache.")
-        except Exception as e:
-            logger.error(f"Failed to refresh server lookup: {e}")
+                for row in rows:
+                    server_id = row["id"]
+                    ip = row["ip"]
+                    port = row["port"]
+                    name = row["name"]
+                    table_name = f"{db_type}_{server_id}"
+
+                    server_info = {
+                        "id": server_id,
+                        "table_name": table_name,
+                        "ip": ip,
+                        "port": port,
+                        "type": type_code,  # 0 for Java, 1 for Bedrock
+                        "db_type": db_type,
+                        "name": name,
+                    }
+                    # Populate lookup map for quick retrieval
+                    new_lookup[str(server_id)] = server_info
+                    new_lookup[table_name] = server_info
+                    new_lookup[ip] = server_info
+
+                logger.info(f"Loaded {len(rows)} {db_type} servers into lookup cache.")
+            except Exception as e:
+                logger.error(f"Failed to refresh server lookup for {db_type}: {e}")
+
+        with self._lock:
+            self._server_lookup = new_lookup
 
     def load_latest_servers_data(self) -> Dict[str, Dict[str, Any]]:
         """
         Query latest values for all servers from the database and populate cache.
         """
         try:
-            conn = self._get_connection()
-            cursor = conn.cursor()
-
-            # 1. Fetch all servers
-            cursor.execute("SELECT id, table_name, ip, port, type FROM servers;")
-            servers = cursor.fetchall()
-            if not servers:
-                conn.close()
-                return {}
-
-            servers_by_id = {row["id"]: dict(row) for row in servers}
-            latest_by_id: Dict[int, Dict[str, Any]] = {}
-
-            for sid, sinfo in servers_by_id.items():
-                latest_by_id[sid] = {
-                    "ip": sinfo["ip"],
-                    "table_name": sinfo["table_name"],
-                    "port": sinfo["port"],
-                    "type": sinfo["type"],
-                    "save_time": 0,
-                    "players_on": None,
-                    "players_max": None,
-                    "ping": None,
-                    "version_protocol": None,
-                    "motd": None,
-                    "version_name": None,
-                    "favicon": None,
-                    "players_sample": None,
-                    "version_brand": None,
-                    "gamemode": None,
-                    "map": None,
-                }
-
-            # 2. Query latest metrics per server & field
-            cursor.execute("""
-                SELECT server_id, field_id, value, MAX(timestamp) as ts
-                FROM metric_changes
-                GROUP BY server_id, field_id;
-            """)
-            for row in cursor.fetchall():
-                sid = row["server_id"]
-                fid = row["field_id"]
-                val = row["value"]
-                ts = row["ts"]
-
-                if sid in latest_by_id:
-                    col_name = METRIC_FIELDS.get(fid)
-                    if col_name:
-                        latest_by_id[sid][col_name] = val
-                    if ts > latest_by_id[sid]["save_time"]:
-                        latest_by_id[sid]["save_time"] = ts
-
-            # 3. Query latest text changes joined with text_values
-            cursor.execute("""
-                SELECT tc.server_id, tc.field_id, tv.content, MAX(tc.timestamp) as ts
-                FROM text_changes tc
-                JOIN text_values tv ON tv.id = tc.value_id
-                GROUP BY tc.server_id, tc.field_id;
-            """)
-            for row in cursor.fetchall():
-                sid = row["server_id"]
-                fid = row["field_id"]
-                content = row["content"]
-                ts = row["ts"]
-
-                if sid in latest_by_id:
-                    stype = latest_by_id[sid]["type"]
-                    text_names = TEXT_FIELDS_JAVA if stype == SERVER_TYPE_JAVA else TEXT_FIELDS_BEDROCK
-                    col_name = text_names.get(fid)
-                    if col_name:
-                        if col_name == "favicon":
-                            content = format_favicon(content)
-                        elif isinstance(content, bytes):
-                            content = content.decode("utf-8", errors="replace")
-                        latest_by_id[sid][col_name] = content
-
-                    if ts > latest_by_id[sid]["save_time"]:
-                        latest_by_id[sid]["save_time"] = ts
-
-            # 4. Query latest heartbeats for max timestamp fallback
-            cursor.execute("""
-                SELECT server_id, MAX(timestamp) as ts
-                FROM heartbeats
-                GROUP BY server_id;
-            """)
-            for row in cursor.fetchall():
-                sid = row["server_id"]
-                ts = row["ts"]
-                if sid in latest_by_id and ts > latest_by_id[sid]["save_time"]:
-                    latest_by_id[sid]["save_time"] = ts
-
-            conn.close()
-
+            latest_by_id: Dict[str, Dict[str, Any]] = {}
             result = {}
-            for sid, sdict in latest_by_id.items():
+
+            for db_type in ["java", "bedrock"]:
+                if db_type not in self.db_conns_paths:
+                    continue
+                
+                try:
+                    conn = self._get_connection(db_type)
+                    cursor = conn.cursor()
+                    cursor2 = conn.cursor()  # For player deduplication/resolution queries
+                    
+                    # 1. Fetch all servers
+                    cursor.execute("SELECT id, name, ip, port FROM servers;")
+                    servers = cursor.fetchall()
+                    if not servers:
+                        conn.close()
+                        continue
+
+                    # Server mappings for this database
+                    type_code = 0 if db_type == "java" else 1
+                    
+                    # Initialize entries
+                    for row in servers:
+                        sid = row["id"]
+                        table_name = f"{db_type}_{sid}"
+                        
+                        latest_by_id[table_name] = {
+                            "ip": row["ip"],
+                            "table_name": table_name,
+                            "port": row["port"],
+                            "type": type_code,
+                            "save_time": 0,
+                            "players_on": None,
+                            "players_max": None,
+                            "ping": None,
+                            "version_protocol": None,
+                            "motd": None,
+                            "version_name": None,
+                            "favicon": None,
+                            "players_sample": None,
+                            "version_brand": None,
+                            "gamemode": None,
+                            "map": None,
+                            "enforces_secure_chat": None,
+                            "forge_fml_network_version": None,
+                            "forge_truncated": None,
+                            "forge_channels": None,
+                            "forge_mods": None,
+                        }
+
+                    # 2. Query latest metrics per server & field
+                    cursor.execute("""
+                        SELECT server_id, field_id, value, MAX(timestamp) as ts
+                        FROM metric_changes
+                        GROUP BY server_id, field_id;
+                    """)
+                    metric_field_names = JAVA_METRIC_FIELDS if db_type == "java" else BEDROCK_METRIC_FIELDS
+                    for row in cursor.fetchall():
+                        sid = row["server_id"]
+                        fid = row["field_id"]
+                        val = row["value"]
+                        ts = row["ts"]
+
+                        table_name = f"{db_type}_{sid}"
+                        if table_name in latest_by_id:
+                            col_name = metric_field_names.get(fid)
+                            if col_name:
+                                latest_by_id[table_name][col_name] = val
+                            if ts > latest_by_id[table_name]["save_time"]:
+                                latest_by_id[table_name]["save_time"] = ts
+
+                    # 3. Query latest text changes joined with text_values
+                    cursor.execute("""
+                        SELECT tc.server_id, tc.field_id, tv.content, MAX(tc.timestamp) as ts
+                        FROM text_changes tc
+                        JOIN text_values tv ON tv.id = tc.value_id
+                        GROUP BY tc.server_id, tc.field_id;
+                    """)
+                    text_field_names = JAVA_TEXT_FIELDS if db_type == "java" else BEDROCK_TEXT_FIELDS
+                    for row in cursor.fetchall():
+                        sid = row["server_id"]
+                        fid = row["field_id"]
+                        content = row["content"]
+                        ts = row["ts"]
+
+                        table_name = f"{db_type}_{sid}"
+                        if table_name in latest_by_id:
+                            col_name = text_field_names.get(fid)
+                            if col_name:
+                                if col_name == "favicon":
+                                    content = format_favicon(content)
+                                elif col_name == "players_sample":
+                                    content = resolve_players_sample(content, cursor2)
+                                elif isinstance(content, bytes):
+                                    content = content.decode("utf-8", errors="replace")
+                                latest_by_id[table_name][col_name] = content
+
+                            if ts > latest_by_id[table_name]["save_time"]:
+                                latest_by_id[table_name]["save_time"] = ts
+
+                    # 4. Query latest heartbeats for max timestamp fallback
+                    cursor.execute("""
+                        SELECT server_id, MAX(timestamp) as ts
+                        FROM heartbeats
+                        GROUP BY server_id;
+                    """)
+                    for row in cursor.fetchall():
+                        sid = row["server_id"]
+                        ts = row["ts"]
+                        table_name = f"{db_type}_{sid}"
+                        if table_name in latest_by_id and ts > latest_by_id[table_name]["save_time"]:
+                            latest_by_id[table_name]["save_time"] = ts
+
+                    conn.close()
+                except Exception as e:
+                    logger.error(f"Error loading data for db {db_type}: {e}", exc_info=True)
+
+            # Build final response keyed by IP or table_name
+            for sdict in latest_by_id.values():
                 key = sdict["ip"] if sdict["ip"] else sdict["table_name"]
                 result[key] = sdict
 
@@ -214,7 +341,7 @@ class DbReader:
                 self._latest_cache = result
                 self._last_cache_update = time.time()
 
-            logger.info(f"Loaded latest status for {len(latest_by_id)} servers.")
+            logger.info(f"Loaded latest status for {len(result)} servers.")
             return result
 
         except Exception as e:
@@ -277,12 +404,14 @@ class DbReader:
             }
 
         server_id = server_info["id"]
-        server_type = server_info["type"]
-        text_field_names = TEXT_FIELDS_JAVA if server_type == SERVER_TYPE_JAVA else TEXT_FIELDS_BEDROCK
+        db_type = server_info["db_type"]
+        metric_field_names = JAVA_METRIC_FIELDS if db_type == "java" else BEDROCK_METRIC_FIELDS
+        text_field_names = JAVA_TEXT_FIELDS if db_type == "java" else BEDROCK_TEXT_FIELDS
 
         try:
-            conn = self._get_connection()
+            conn = self._get_connection(db_type)
             cursor = conn.cursor()
+            cursor2 = conn.cursor()  # For player resolution queries
 
             # 1. Fetch heartbeats
             cursor.execute(
@@ -301,7 +430,7 @@ class DbReader:
 
             for r in metric_rows:
                 fid = r["field_id"]
-                col_name = METRIC_FIELDS.get(fid)
+                col_name = metric_field_names.get(fid)
                 if col_name:
                     if col_name not in metrics_dict:
                         metrics_dict[col_name] = []
@@ -333,6 +462,8 @@ class DbReader:
                     if val_id_str not in text_values_dict:
                         if col_name == "favicon":
                             content = format_favicon(content)
+                        elif col_name == "players_sample":
+                            content = resolve_players_sample(content, cursor2)
                         elif isinstance(content, bytes):
                             content = content.decode("utf-8", errors="replace")
                         text_values_dict[val_id_str] = content
@@ -358,7 +489,7 @@ class DbReader:
             }
 
             logger.info(
-                f"Fetched native columnar data for '{identifier}' (id: {server_id}): "
+                f"Fetched native columnar data for '{identifier}' (db: {db_type}, id: {server_id}): "
                 f"{len(heartbeats)} heartbeats, {len(metric_rows)} metric changes, {len(text_rows)} text changes, {len(text_values_dict)} unique text values."
             )
             return result

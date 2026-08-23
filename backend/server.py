@@ -35,9 +35,9 @@ except ImportError:
         response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
         return response
 
-db_path = config.resolve_db_path()
-logger.info(f"Using database file: {db_path}")
-db_reader = DbReader(db_path)
+db_paths = config.resolve_db_paths()
+logger.info(f"Using database files: {db_paths}")
+db_reader = DbReader(db_paths)
 
 # Pre-populate server lookup and latest cache on startup
 db_reader.refresh_server_lookup()
@@ -94,8 +94,8 @@ def health_check():
     """Health check endpoint."""
     return jsonify({
         "status": "ok",
-        "db_path": db_reader.db_path,
-        "db_exists": os.path.exists(db_reader.db_path),
+        "db_paths": db_reader.db_paths,
+        "resolved_paths": db_reader.db_conns_paths,
         "cached_servers": len(db_reader._latest_cache),
     })
 
