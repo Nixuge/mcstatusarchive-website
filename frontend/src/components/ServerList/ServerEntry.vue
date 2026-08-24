@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from 'vue';
+import { onMounted, ref, computed, type Ref } from 'vue';
 import { API_URL } from '@/constants';
 import { useServerList, type Server } from '@/stores/serverlist';
 import { parseMotd } from '@/ts/utils/motd';
@@ -8,6 +8,12 @@ const { getSelectedServer, changeSelectedServer } = useServerList()
 const props = defineProps<{
     data: Server
 }>();
+
+const isForge = computed(() => {
+    return props.data.forge_fml_network_version !== undefined && 
+           props.data.forge_fml_network_version !== null && 
+           props.data.forge_fml_network_version !== -1;
+});
 
 const ip = props.data.ip;
 const icon = props.data.favicon;
@@ -70,6 +76,7 @@ function showVersionTemporary() {
             
             <img class="ping" width="20" height="14" :src="`${API_URL}/static/ping/ping_${pingSrc}.png`" @click="showVersionTemporary">
             <span class="player_count" v-if="online_players !== undefined && max_players !== undefined">{{ online_players }}/{{ max_players }}</span>
+            <img v-if="isForge" class="forge_icon" src="/forge_icon.png" title="Forge Server" alt="Forge">
             <img v-if="props.data.type === 1" class="bedrock_icon" src="https://minecraft.wiki/images/Bedrock_JE2_BE2.png" title="Bedrock Edition" alt="Bedrock">
         </div>
         <div class="server_motd" ref="motdRef"></div>
@@ -151,5 +158,15 @@ img {
     margin-top: 3px;
     margin-right: 5px;
     image-rendering: pixelated;
+}
+.forge_icon {
+    float: right;
+    width: 16px;
+    height: 16px;
+    margin-top: 6px;
+    margin-left: 5px;
+    margin-right: 5px;
+    image-rendering: pixelated;
+    border-radius: 2px;
 }
 </style>

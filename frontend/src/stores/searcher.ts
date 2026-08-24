@@ -8,6 +8,7 @@ export const useSearcher = defineStore('searcher', () => {
     const maxPing = ref(0);
     const minPlayerCount = ref(0);
     const serverType = ref("all"); // "all", "java", "bedrock"
+    const moddedFilter = ref("all"); // "all", "vanilla", "forge"
 
     function searchInputMount(elem: HTMLInputElement) {
         if (elem) elem.value = searchText.value;
@@ -55,6 +56,13 @@ export const useSearcher = defineStore('searcher', () => {
         return serverType.value;
     }
 
+    function setModdedFilter(val: string) {
+        moddedFilter.value = val;
+    }
+    function getModdedFilter() {
+        return moddedFilter.value;
+    }
+
     return { 
         setSearchText, 
         getSearchText, 
@@ -68,6 +76,8 @@ export const useSearcher = defineStore('searcher', () => {
         getOrderDescending, 
         setServerType,
         getServerType,
+        setModdedFilter,
+        getModdedFilter,
         searchInputMount 
     }
 })

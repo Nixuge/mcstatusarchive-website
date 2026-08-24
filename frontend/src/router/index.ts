@@ -23,6 +23,16 @@ const router = createRouter({
       component: () => import('../views/ServerView.vue')
     },
     {
+      path: '/graph',
+      name: 'graph',
+      component: () => import('../views/GraphView.vue')
+    },
+    {
+      path: '/stats',
+      name: 'stats',
+      component: () => import('../views/GraphView.vue')
+    },
+    {
       path: "/:pathMatch(.*)*",
       name: "rootCatchAll",
       component: SelectorView,

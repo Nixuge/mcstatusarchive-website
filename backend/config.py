@@ -6,19 +6,50 @@ PORT = int(os.getenv("PORT", "50474"))
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
 # Database path resolution:
-# 1. Environment variable MCSA_DB_PATH
-# 2. Path relative to repo root (mcstatusarchive/mcstatusarchive_new.db)
-# 3. Path relative to repo root (mcstatusarchive/mcstatusarchive.db)
-# 4. Local directory (mcstatusarchive_new.db or mcstatusarchive.db)
+# Java and Bedrock DBs are resolved separately.
+# Java DB defaults:
+# 1. Environment variable MCSA_JAVA_DB_PATH
+# 2. Main project java db: ../mcstatusarchive/data/mcstatusarchive_java.db
+# 3. Local java db (mcstatusarchive_java.db)
+# Bedrock DB defaults:
+# 1. Environment variable MCSA_BEDROCK_DB_PATH
+# 2. Main project bedrock db: ../mcstatusarchive/data/mcstatusarchive_bedrock.db
+# 3. Local bedrock db (mcstatusarchive_bedrock.db)
 
-DEFAULT_POSSIBLE_PATHS = [
-    os.getenv("MCSA_DB_PATH", ""),
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "mcstatusarchive.db")),
-]
+def resolve_db_paths() -> dict[str, str]:
+    # Single MCSA_DB_PATH fallback for backwards compatibility/testing
+    single_path = os.getenv("MCSA_DB_PATH", "")
+    if single_path and os.path.exists(single_path):
+        return {"single": single_path}
 
-def resolve_db_path() -> str:
-    for path in DEFAULT_POSSIBLE_PATHS:
-        if path and os.path.exists(path):
-            return path
-    # Default fallback to first non-empty or standard location
-    return DEFAULT_POSSIBLE_PATHS[1]
+    # Grandparent root for relative main project lookup
+    # java_default = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "mcstatusarchive", "data", "mcstatusarchive_java.db"))
+    # bedrock_default = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "mcstatusarchive", "data", "mcstatusarchive_bedrock.db"))
+    
+    java_path = os.getenv("MCSA_JAVA_DB_PATH", "")
+    if not java_path or not os.path.exists(java_path):
+        # if os.path.exists(java_default):
+        #     java_path = java_default
+        # else:
+        java_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "mcstatusarchive_java.db"))
+
+    bedrock_path = os.getenv("MCSA_BEDROCK_DB_PATH", "")
+    if not bedrock_path or not os.path.exists(bedrock_path):
+        # if os.path.exists(bedrock_default):
+        #     bedrock_path = bedrock_default
+        # else:
+        bedrock_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "mcstatusarchive_bedrock.db"))
+
+    print(f"Pathes: {java_path}, {bedrock_path}")
+    paths = {}
+    if os.path.exists(java_path):
+        paths["java"] = java_path
+    if os.path.exists(bedrock_path):
+        paths["bedrock"] = bedrock_path
+
+    # If neither exists, populate fallback entries
+    if not paths:
+        paths["java"] = java_path
+        paths["bedrock"] = bedrock_path
+
+    return paths

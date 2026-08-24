@@ -55,7 +55,9 @@ onMounted(() => {
 
         <span v-if="latestSnapshot.version_brand !== undefined" class="b s">Brand: {{ latestSnapshot.version_brand }}</span>
         <span v-if="latestSnapshot.gamemode !== undefined" class="b s">Gamemode: {{ latestSnapshot.gamemode }}</span>
-        <span v-if="latestSnapshot.map !== undefined" class="b">Map: {{ latestSnapshot.map }}</span>
+        <span v-if="latestSnapshot.map !== undefined" class="b s">Map: {{ latestSnapshot.map }}</span>
+        <span v-if="latestSnapshot.enforces_secure_chat !== undefined && latestSnapshot.enforces_secure_chat !== -1" class="b s">Secure Chat: {{ latestSnapshot.enforces_secure_chat === 1 ? 'Enforced' : 'Not Enforced' }}</span>
+        <span v-if="latestSnapshot.forge_fml_network_version !== undefined && latestSnapshot.forge_fml_network_version !== -1" class="b">Forge Net Ver: {{ latestSnapshot.forge_fml_network_version }}</span>
     </div>
 </template>
 

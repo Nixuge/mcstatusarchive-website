@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { useRoute, RouterView } from 'vue-router';
+const route = useRoute();
 </script>
 
 <template>
-  <RouterView />
+  <div :class="['app-container', { 'minestats-page': route.name === 'graph' || route.name === 'stats' }]">
+    <RouterView />
+  </div>
 </template>
 
-<style>
-
+<style scoped>
+.app-container {
+  height: 100%;
+  width: 100%;
+}
 </style>

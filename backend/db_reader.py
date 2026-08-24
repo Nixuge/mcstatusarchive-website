@@ -242,6 +242,7 @@ class DbReader:
                         table_name = f"{db_type}_{sid}"
                         
                         latest_by_id[table_name] = {
+                            "name": row["name"],
                             "ip": row["ip"],
                             "table_name": table_name,
                             "port": row["port"],
@@ -481,6 +482,7 @@ class DbReader:
                     "ip": server_info["ip"],
                     "port": server_info["port"],
                     "type": server_info["type"],
+                    "name": server_info.get("name"),
                 },
                 "heartbeats": heartbeats,
                 "metrics": metrics_dict,
@@ -503,3 +505,90 @@ class DbReader:
                 "text_values": {},
                 "texts": {},
             }
+
+    def get_multi_server_playercount_data(self, identifiers: List[str]) -> Dict[str, Any]:
+        """
+        Fetch players_on metric changes and heartbeats for multiple servers efficiently.
+        Returns: {
+            identifier: {
+                "id": server_id,
+                "table_name": table_name,
+                "name": server_name,
+                "ip": server_ip,
+                "port": server_port,
+                "type": type_code,
+                "heartbeats": [ts1, ts2, ...],
+                "players_on": [[ts, val], ...]
+            }
+        }
+        """
+        if not self._server_lookup:
+            self.refresh_server_lookup()
+
+        by_db: Dict[str, List[Tuple[str, Dict[str, Any]]]] = {"java": [], "bedrock": []}
+        for ident in identifiers:
+            sinfo = self._server_lookup.get(ident)
+            if sinfo:
+                db_type = sinfo["db_type"]
+                if db_type in by_db:
+                    by_db[db_type].append((ident, sinfo))
+
+        result: Dict[str, Any] = {}
+
+        for db_type, server_entries in by_db.items():
+            if not server_entries or db_type not in self.db_conns_paths:
+                continue
+
+            try:
+                conn = self._get_connection(db_type)
+                cursor = conn.cursor()
+
+                server_ids = list({sinfo["id"] for _, sinfo in server_entries})
+                if not server_ids:
+                    conn.close()
+                    continue
+
+                placeholders = ",".join("?" for _ in server_ids)
+
+                cursor.execute(
+                    f"SELECT server_id, timestamp, value FROM metric_changes "
+                    f"WHERE field_id = 0 AND server_id IN ({placeholders}) "
+                    f"ORDER BY timestamp ASC;",
+                    server_ids
+                )
+                metric_rows = cursor.fetchall()
+                metrics_by_sid: Dict[int, List[List[int]]] = {sid: [] for sid in server_ids}
+                for r in metric_rows:
+                    metrics_by_sid[r["server_id"]].append([r["timestamp"], r["value"]])
+
+                cursor.execute(
+                    f"SELECT server_id, timestamp FROM heartbeats "
+                    f"WHERE server_id IN ({placeholders}) "
+                    f"ORDER BY timestamp ASC;",
+                    server_ids
+                )
+                hb_rows = cursor.fetchall()
+                hb_by_sid: Dict[int, List[int]] = {sid: [] for sid in server_ids}
+                for r in hb_rows:
+                    hb_by_sid[r["server_id"]].append(r["timestamp"])
+
+                conn.close()
+
+                for ident, sinfo in server_entries:
+                    sid = sinfo["id"]
+                    result[ident] = {
+                        "id": sid,
+                        "table_name": sinfo["table_name"],
+                        "name": sinfo.get("name"),
+                        "ip": sinfo["ip"],
+                        "port": sinfo["port"],
+                        "type": sinfo["type"],
+                        "heartbeats": hb_by_sid.get(sid, []),
+                        "players_on": metrics_by_sid.get(sid, []),
+                    }
+
+            except Exception as e:
+                logger.error(f"Error fetching multi-server playercount data for {db_type}: {e}", exc_info=True)
+
+        return result
+

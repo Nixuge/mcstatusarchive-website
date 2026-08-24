@@ -45,6 +45,29 @@ const playerSampleList = computed(() => {
     return [];
 });
 
+const forgeModsList = computed(() => {
+    const snap = activeSnapshot.value.snapshot;
+    if (!snap || !snap.forge_mods) return [];
+    
+    const raw = snap.forge_mods;
+    if (Array.isArray(raw)) {
+        return raw.map(m => (typeof m === 'object' && m.name) ? m.name : String(m));
+    }
+    if (typeof raw === 'string') {
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return parsed.map(m => (typeof m === 'object' && m.name) ? m.name : String(m));
+            }
+        } catch (e) {
+            if (raw !== "[]" && raw !== "None") {
+                return [raw];
+            }
+        }
+    }
+    return [];
+});
+
 const formattedDate = computed(() => {
     const snap = activeSnapshot.value.snapshot;
     if (!snap || !snap.save_time) return "N/A";
@@ -95,6 +118,14 @@ const formattedDate = computed(() => {
                     <span class="stat_label">Map:</span>
                     <span class="stat_value">{{ activeSnapshot.snapshot.map }}</span>
                 </div>
+                <div class="stat_item" v-if="activeSnapshot.snapshot?.enforces_secure_chat !== undefined && activeSnapshot.snapshot?.enforces_secure_chat !== -1">
+                    <span class="stat_label">Secure Chat:</span>
+                    <span class="stat_value">{{ activeSnapshot.snapshot.enforces_secure_chat === 1 ? 'Enforced' : 'Not Enforced' }}</span>
+                </div>
+                <div class="stat_item" v-if="activeSnapshot.snapshot?.forge_fml_network_version !== undefined && activeSnapshot.snapshot?.forge_fml_network_version !== -1">
+                    <span class="stat_label">Forge Net Ver:</span>
+                    <span class="stat_value">{{ activeSnapshot.snapshot.forge_fml_network_version }}</span>
+                </div>
             </div>
 
             <div class="card motd_card">
@@ -107,6 +138,15 @@ const formattedDate = computed(() => {
                 <div class="player_pills">
                     <span v-for="(pname, idx) in playerSampleList" :key="idx" class="player_pill">
                         {{ pname }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="card sample_card" v-if="forgeModsList.length > 0">
+                <span class="card_title">Forge Mods ({{ forgeModsList.length }})</span>
+                <div class="player_pills">
+                    <span v-for="(mname, idx) in forgeModsList" :key="idx" class="player_pill forge_mod_pill">
+                        {{ mname }}
                     </span>
                 </div>
             </div>
@@ -233,5 +273,10 @@ const formattedDate = computed(() => {
     font-size: 0.8rem;
     padding: 2px 6px;
     border-radius: 3px;
+}
+.forge_mod_pill {
+    background-color: #242b24;
+    border: 1px solid #3c543c;
+    color: #88c088;
 }
 </style>

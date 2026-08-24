@@ -1,10 +1,12 @@
 import { ref, type ComputedRef, type Ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { API_URL } from '@/constants';
+import { API_URL, SERVER_IP_BLACKLIST } from '@/constants';
 import { useSearcher } from './searcher';
 
 
+
 export interface Server {
+    name?: string;
     ip: string;
     motd: string;
     motd_text?: string; // To be set from ServerEntry from textContent
@@ -20,6 +22,11 @@ export interface Server {
     gamemode?: string;
     map?: string;
     type?: number; // 0 = java, 1 = bedrock
+    enforces_secure_chat?: number;
+    forge_fml_network_version?: number;
+    forge_truncated?: number;
+    forge_channels?: string;
+    forge_mods?: string;
 }
 
 export const useServerList = defineStore('serverList', () => {
@@ -34,20 +41,24 @@ export const useServerList = defineStore('serverList', () => {
         // Format {ip1: {...}, ip2: {....}}
         // to [{ip: ip1, ...}, {ip: ip2, ...}]
 
-        serverList.value = Object.keys(data).map(ip => ({
-            ip: ip,
-            ...data[ip]
-          }));
+        serverList.value = Object.keys(data)
+            .filter(ip => !SERVER_IP_BLACKLIST.some(b => b.toLowerCase() === ip.toLowerCase()))
+            .map(ip => ({
+                ip: ip,
+                ...data[ip]
+            }));
+
           
     }
     
-    const { getSearchText, getMaxPing, getMinPlayerCount, getOrder, getOrderDescending, getServerType } = useSearcher();
+    const { getSearchText, getMaxPing, getMinPlayerCount, getOrder, getOrderDescending, getServerType, getModdedFilter } = useSearcher();
     const shownServerList: ComputedRef<Server[]> = computed(() => {
         const allShown = [];
         const minPlayers = getMinPlayerCount();
         const maxPing = getMaxPing();
         const search = getSearchText();
         const typeFilter = getServerType();
+        const moddedFilter = getModdedFilter();
 
         for (const server of serverList.value) {
             const motdCombined = (server.motd || "") + " " + (server.motd_text || "");
@@ -62,7 +73,17 @@ export const useServerList = defineStore('serverList', () => {
                 matchesType = server.type === 1;
             }
 
-            if (matchesSearch && matchesPlayers && matchesPing && matchesType) {
+            let matchesModded = true;
+            const isForgeServer = server.forge_fml_network_version !== undefined && 
+                                  server.forge_fml_network_version !== null && 
+                                  server.forge_fml_network_version !== -1;
+            if (moddedFilter === "vanilla") {
+                matchesModded = !isForgeServer;
+            } else if (moddedFilter === "forge") {
+                matchesModded = isForgeServer;
+            }
+
+            if (matchesSearch && matchesPlayers && matchesPing && matchesType && matchesModded) {
                 allShown.push(server);
             }
         }

@@ -58,6 +58,26 @@ def get_all_server_data(identifier):
     return jsonify(timeline)
 
 
+@app.route("/get_multi_server_playercount_data", methods=["GET", "POST"])
+def get_multi_server_playercount_data():
+    """Return player counts and heartbeats timeline for a list of server identifiers (max 50)."""
+    if request.method == "POST":
+        payload = request.get_json(force=True, silent=True) or {}
+        identifiers = payload.get("servers", [])
+    else:
+        servers_param = request.args.get("servers", "")
+        identifiers = [s.strip() for s in servers_param.split(",") if s.strip()]
+
+    if not identifiers:
+        return jsonify({})
+
+    # Cap at 500 servers
+    identifiers = identifiers[:500]
+    data = db_reader.get_multi_server_playercount_data(identifiers)
+    return jsonify(data)
+
+
+
 @app.route("/update_fields", methods=["POST"])
 def update_fields():
     """Receive live status updates from scraper FrontendUpdater thread."""

@@ -20,19 +20,32 @@ export interface ServerDataResponse {
     };
 }
 
-export interface ServerSnapshot {
+export interface BaseSnapshot {
     save_time: number;
     motd?: string;
-    favicon?: string;
     ping?: number;
     players_max?: number;
     players_on?: number;
     version_name?: string;
     version_protocol?: number;
-    players_sample?: string;
-    version_brand?: string;
-    gamemode?: string;
-    map?: string;
     type?: number;
     [key: string]: any; // Indexable (= accessible with interface["property"])
 }
+
+export interface JavaSnapshot extends BaseSnapshot {
+    favicon?: string;
+    players_sample?: string;
+    enforces_secure_chat?: number;
+    forge_fml_network_version?: number;
+    forge_truncated?: number;
+    forge_channels?: string;
+    forge_mods?: string;
+}
+
+export interface BedrockSnapshot extends BaseSnapshot {
+    version_brand?: string;
+    gamemode?: string;
+    map?: string;
+}
+
+export type ServerSnapshot = JavaSnapshot | BedrockSnapshot;

@@ -9,31 +9,43 @@
 
 @font-face {
   font-family: 'minecraftio';
-      src: url('./minecraftio.ttf') format('truetype');
+  src: url('./minecraftio.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-    }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
 
 * {
   font-family: minecraftio;
+  box-sizing: border-box;
 }
-
 
 #app {
   color: #fff;
   margin: 0 auto;
-
   font-weight: normal;
-}
-#app {
   background: url("https://i.imgur.com/BuhwdPB.png");
   background-repeat: repeat;
- }
- #app {
-    height: 100vh;
-    padding-top: 1rem;
-    padding-bottom: 2rem;
-  }
+  height: 100vh;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+#app:has(.graph-page-container),
+#app:has(#stats) {
+  overflow-y: auto;
+}
+
 a,
 .green {
   text-decoration: none;

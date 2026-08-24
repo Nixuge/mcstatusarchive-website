@@ -18,6 +18,14 @@ export const useSnapshots = defineStore('snapshots', () => {
     const snapshotSearcher: Ref<SnapshotSearcher | undefined> = shallowRef(undefined);
     const hoveredSnapshot: Ref<ServerSnapshot | null> = ref(null);
 
+    const isJava = computed(() => {
+        return rawDataResponse.value?.server?.type === 0;
+    });
+
+    const isBedrock = computed(() => {
+        return rawDataResponse.value?.server?.type === 1;
+    });
+
     const latestSnapshot = computed(() => {
         startTiming("grabLatestSnapshotData");
 
@@ -174,6 +182,8 @@ export const useSnapshots = defineStore('snapshots', () => {
         hoveredSnapshot,
         setHoveredSnapshot,
         getHoveredSnapshot,
+        isJava,
+        isBedrock,
         reset 
     }
 })

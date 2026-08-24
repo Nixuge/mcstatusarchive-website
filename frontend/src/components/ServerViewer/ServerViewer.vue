@@ -45,8 +45,8 @@ onMounted(async() => {
             <RangePicker />
             <ChangePicker />
         </div>
-        <SnapshotsViewer />
         <HoveredSnapshotInfo />
+        <SnapshotsViewer />
 
         <DebugWindow />
     </div>
