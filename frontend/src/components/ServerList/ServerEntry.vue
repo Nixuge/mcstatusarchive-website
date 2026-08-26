@@ -59,7 +59,7 @@ function showVersionTemporary() {
     "Ping: " + props.data.ping + 
     "\n\nVersion name: " + props.data.version_name + 
     "\nVersion protocol: " + props.data.version_protocol +
-    "\n\n(Server pinged in 1.20.2, protocol version 764)"
+    "\n\n(Server pinged in 26.2, protocol version 776)"
     )
 }
 </script>

@@ -289,7 +289,7 @@ class DbReader:
 
                     # 3. Query latest text changes joined with text_values
                     cursor.execute("""
-                        SELECT tc.server_id, tc.field_id, tv.content, MAX(tc.timestamp) as ts
+                        SELECT tc.server_id, tc.field_id, tv.content, tv.compressed, MAX(tc.timestamp) as ts
                         FROM text_changes tc
                         JOIN text_values tv ON tv.id = tc.value_id
                         GROUP BY tc.server_id, tc.field_id;
@@ -299,18 +299,22 @@ class DbReader:
                         sid = row["server_id"]
                         fid = row["field_id"]
                         content = row["content"]
+                        compressed = row["compressed"]
                         ts = row["ts"]
 
                         table_name = f"{db_type}_{sid}"
                         if table_name in latest_by_id:
                             col_name = text_field_names.get(fid)
                             if col_name:
-                                if col_name == "favicon":
-                                    content = format_favicon(content)
-                                elif col_name == "players_sample":
-                                    content = resolve_players_sample(content, cursor2)
-                                elif isinstance(content, bytes):
-                                    content = content.decode("utf-8", errors="replace")
+                                if compressed == 1:
+                                    content = "<Unknown compressed data>"
+                                else:
+                                    if col_name == "favicon":
+                                        content = format_favicon(content)
+                                    elif col_name == "players_sample":
+                                        content = resolve_players_sample(content, cursor2)
+                                    elif isinstance(content, bytes):
+                                        content = content.decode("utf-8", errors="replace")
                                 latest_by_id[table_name][col_name] = content
 
                             if ts > latest_by_id[table_name]["save_time"]:
@@ -440,7 +444,7 @@ class DbReader:
             # 3. Fetch text changes and deduplicated text values
             cursor.execute(
                 """
-                SELECT tc.field_id, tc.timestamp, tc.value_id, tv.content
+                SELECT tc.field_id, tc.timestamp, tc.value_id, tv.content, tv.compressed
                 FROM text_changes tc
                 JOIN text_values tv ON tv.id = tc.value_id
                 WHERE tc.server_id = ?
@@ -456,17 +460,21 @@ class DbReader:
                 fid = r["field_id"]
                 val_id = r["value_id"]
                 content = r["content"]
+                compressed = r["compressed"]
                 val_id_str = str(val_id)
 
                 col_name = text_field_names.get(fid)
                 if col_name:
                     if val_id_str not in text_values_dict:
-                        if col_name == "favicon":
-                            content = format_favicon(content)
-                        elif col_name == "players_sample":
-                            content = resolve_players_sample(content, cursor2)
-                        elif isinstance(content, bytes):
-                            content = content.decode("utf-8", errors="replace")
+                        if compressed == 1:
+                            content = "<Unknown compressed data>"
+                        else:
+                            if col_name == "favicon":
+                                content = format_favicon(content)
+                            elif col_name == "players_sample":
+                                content = resolve_players_sample(content, cursor2)
+                            elif isinstance(content, bytes):
+                                content = content.decode("utf-8", errors="replace")
                         text_values_dict[val_id_str] = content
 
                     if col_name not in texts_dict:
