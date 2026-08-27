@@ -3,15 +3,18 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import GraphNavbar from '@/components/Graph/GraphNavbar.vue';
 import PlayerMultiGraph from '@/components/Graph/PlayerMultiGraph.vue';
 import VersionPieChart from '@/components/Graph/VersionPieChart.vue';
+import DomainPieChart from '@/components/Graph/DomainPieChart.vue';
+import SecureChatPieChart from '@/components/Graph/SecureChatPieChart.vue';
 
-const TOTAL_PAGES = 3;
+const TOTAL_PAGES = 4;
 const currentPage = ref(0);
 const slideDirection = ref<'slide-left' | 'slide-right'>('slide-left');
 
 const pageTitles = [
     'Multi-Server Player Count Graph',
     'Minecraft Version Distribution',
-    'Page 3',
+    'Server Domain Distribution',
+    'Secure Chat Enforcement',
 ];
 
 function nextPage() {
@@ -90,13 +93,14 @@ onUnmounted(() => {
                             <VersionPieChart />
                         </div>
 
-                        <!-- Page 3: Blank Page -->
-                        <div v-else-if="currentPage === 2" class="blank-placeholder-container">
-                            <div class="blank-card">
-                                <div class="blank-icon">📈</div>
-                                <h2>Page 3</h2>
-                                <p class="placeholder-subtitle">Coming Soon</p>
-                            </div>
+                        <!-- Page 3: Server Domain Distribution -->
+                        <div v-else-if="currentPage === 2" class="slide-content">
+                            <DomainPieChart />
+                        </div>
+
+                        <!-- Page 4: Secure Chat Enforcement -->
+                        <div v-else-if="currentPage === 3" class="slide-content">
+                            <SecureChatPieChart />
                         </div>
                     </div>
                 </KeepAlive>
