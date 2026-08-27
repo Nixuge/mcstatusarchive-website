@@ -5,8 +5,9 @@ import PlayerMultiGraph from '@/components/Graph/PlayerMultiGraph.vue';
 import VersionPieChart from '@/components/Graph/VersionPieChart.vue';
 import DomainPieChart from '@/components/Graph/DomainPieChart.vue';
 import SecureChatPieChart from '@/components/Graph/SecureChatPieChart.vue';
+import PingBarChart from '@/components/Graph/PingBarChart.vue';
 
-const TOTAL_PAGES = 4;
+const TOTAL_PAGES = 5;
 const currentPage = ref(0);
 const slideDirection = ref<'slide-left' | 'slide-right'>('slide-left');
 
@@ -15,6 +16,7 @@ const pageTitles = [
     'Minecraft Version Distribution',
     'Server Domain Distribution',
     'Secure Chat Enforcement',
+    'Server Ping Distribution',
 ];
 
 function nextPage() {
@@ -101,6 +103,11 @@ onUnmounted(() => {
                         <!-- Page 4: Secure Chat Enforcement -->
                         <div v-else-if="currentPage === 3" class="slide-content">
                             <SecureChatPieChart />
+                        </div>
+
+                        <!-- Page 5: Server Ping Distribution -->
+                        <div v-else-if="currentPage === 4" class="slide-content">
+                            <PingBarChart />
                         </div>
                     </div>
                 </KeepAlive>

@@ -491,10 +491,9 @@ function handleCanvasMouseLeave() {
 
 <style scoped>
 .domain-pie-container {
-    width: 92%;
-    max-width: 1280px;
+    width: 90%;
     margin: 0 auto;
-    padding: 10px 0 20px 0;
+    padding: 0 0 20px 0;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
